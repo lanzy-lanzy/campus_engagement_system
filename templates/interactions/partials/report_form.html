@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'interactions:report_post' post.pk %}" hx-post="{% url 'interactions:report_post' post.pk %}" hx-target="#report-{{ post.pk }}" hx-swap="outerHTML" class="mt-2 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white">Submit Report</button>
+</form>

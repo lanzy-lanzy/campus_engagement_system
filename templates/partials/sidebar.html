@@ -1,0 +1,27 @@
+<button type="button" class="fixed left-4 top-4 z-40 rounded-md bg-[#2C3E94] px-3 py-2 text-sm font-medium text-white lg:hidden" @click="sidebarOpen = true">Menu</button>
+<aside class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full border-r border-slate-200 bg-white px-5 py-6 shadow-xl transition lg:static lg:w-auto lg:translate-x-0 lg:shadow-none" :class="{ 'translate-x-0': sidebarOpen }">
+  <div class="flex items-center justify-between">
+    <a href="{% url 'posts:feed' %}" class="text-xl font-bold text-[#2C3E94]">Campus Voice</a>
+    <button class="lg:hidden" type="button" @click="sidebarOpen = false">Close</button>
+  </div>
+  {% if user.is_authenticated %}
+    <nav class="mt-8 space-y-2 text-sm font-medium">
+      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'posts:feed' %}">Feed</a>
+      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'posts:create' %}">Create Post</a>
+      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'accounts:profile' %}">Profile</a>
+      {% if user.is_campus_admin %}
+        <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'dashboard:index' %}">Dashboard</a>
+        <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'dashboard:moderation' %}">Moderation</a>
+      {% endif %}
+    </nav>
+    <form method="post" action="{% url 'accounts:logout' %}" class="mt-8">
+      {% csrf_token %}
+      <button class="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700">Logout</button>
+    </form>
+  {% else %}
+    <nav class="mt-8 space-y-2 text-sm font-medium">
+      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'accounts:login' %}">Login</a>
+      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'accounts:register' %}">Register</a>
+    </nav>
+  {% endif %}
+</aside>

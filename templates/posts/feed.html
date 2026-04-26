@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Feed{% endblock %}
+{% block content %}
+<header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold text-[#2C3E94]">Student Feed</h1>
+    <p class="text-sm text-slate-500">Ideas, concerns, and improvements from the campus community.</p>
+  </div>
+  <a href="{% url 'posts:create' %}" class="inline-flex items-center justify-center rounded-md bg-[#2C3E94] px-4 py-2 text-sm font-semibold text-white">New Post</a>
+</header>
+<div class="mb-5 flex flex-wrap gap-2">
+  <a class="rounded-md border px-3 py-2 text-sm {% if sort == 'latest' %}bg-[#2C3E94] text-white{% endif %}" href="?sort=latest" hx-get="?sort=latest" hx-target="#post-list">Latest</a>
+  <a class="rounded-md border px-3 py-2 text-sm {% if sort == 'most_liked' %}bg-[#2C3E94] text-white{% endif %}" href="?sort=most_liked" hx-get="?sort=most_liked" hx-target="#post-list">Most Liked</a>
+  <a class="rounded-md border px-3 py-2 text-sm {% if sort == 'trending' %}bg-[#2C3E94] text-white{% endif %}" href="?sort=trending" hx-get="?sort=trending" hx-target="#post-list">Trending</a>
+</div>
+{% include "posts/partials/post_list.html" %}
+{% endblock %}

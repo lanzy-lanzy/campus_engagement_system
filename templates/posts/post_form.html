@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ mode }} Post{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl">
+  <h1 class="text-2xl font-semibold text-[#2C3E94]">{{ mode }} Post</h1>
+  <form method="post" enctype="multipart/form-data" class="mt-6 space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="rounded-md bg-[#2C3E94] px-4 py-2 font-medium text-white">Save</button>
+    <a href="{% url 'posts:feed' %}" class="ml-2 text-sm text-slate-500">Cancel</a>
+  </form>
+</section>
+{% endblock %}

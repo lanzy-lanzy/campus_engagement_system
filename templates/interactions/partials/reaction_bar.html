@@ -1,0 +1,13 @@
+<div id="reactions-{{ post.pk }}" class="flex flex-wrap items-center gap-2">
+  <form method="post" action="{% url 'interactions:toggle_reaction' post.pk 'like' %}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'like' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML">
+    {% csrf_token %}
+    <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm hover:bg-sky-50">Like {{ post.like_count }}</button>
+  </form>
+  <form method="post" action="{% url 'interactions:toggle_reaction' post.pk 'heart' %}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'heart' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML">
+    {% csrf_token %}
+    <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm hover:bg-sky-50">Heart {{ post.heart_count }}</button>
+  </form>
+  <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600">{{ post.comment_count }} comments</button>
+  <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600" hx-get="{% url 'interactions:report_post' post.pk %}" hx-target="#report-{{ post.pk }}">Report</button>
+  <div id="report-{{ post.pk }}"></div>
+</div>

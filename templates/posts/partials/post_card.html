@@ -1,0 +1,33 @@
+<article id="post-{{ post.pk }}" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <div class="mb-2 flex flex-wrap items-center gap-2 text-xs">
+        <span class="rounded-full bg-sky-50 px-2 py-1 font-medium text-[#2C3E94]">{{ post.get_category_display }}</span>
+        <span class="text-slate-400">{{ post.created_at|timesince }} ago</span>
+      </div>
+      <h2 class="text-lg font-semibold text-slate-950">{{ post.title }}</h2>
+      <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ post.description }}</p>
+    </div>
+    {% if post.image %}
+      <img src="{{ post.image.url }}" alt="" class="h-28 w-28 rounded-md object-cover">
+    {% endif %}
+  </div>
+  <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+    <div class="text-sm text-slate-500">By {{ post.author.get_full_name|default:post.author.username }}</div>
+    <div class="flex items-center gap-2 text-sm">
+      {% if post.author == user or user.is_campus_admin %}
+        <a class="text-[#2C3E94]" href="{% url 'posts:edit' post.pk %}">Edit</a>
+        <form method="post" action="{% url 'posts:delete' post.pk %}" hx-post="{% url 'posts:delete' post.pk %}" hx-target="#post-list" class="inline">
+          {% csrf_token %}
+          <button class="text-red-600">Delete</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+  <div class="mt-4">
+    {% include "interactions/partials/reaction_bar.html" %}
+  </div>
+  <div class="mt-4">
+    {% include "interactions/partials/comment_list.html" with comments=post.comments.all form=None %}
+  </div>
+</article>

@@ -1,0 +1,11 @@
+<div id="comments-{{ post.pk }}" class="space-y-3">
+  {% for comment in comments %}
+    {% if comment.status == "visible" and not comment.parent_id %}
+      <div class="rounded-md bg-slate-50 p-3 text-sm">
+        <div class="font-medium text-slate-800">{{ comment.author.username }}</div>
+        <p class="mt-1 text-slate-600">{{ comment.body }}</p>
+      </div>
+    {% endif %}
+  {% endfor %}
+  {% include "interactions/partials/comment_form.html" %}
+</div>

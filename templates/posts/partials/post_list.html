@@ -1,0 +1,7 @@
+<div id="post-list" class="space-y-4">
+  {% for post in posts %}
+    {% include "posts/partials/post_card.html" %}
+  {% empty %}
+    <div class="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">No posts to show yet.</div>
+  {% endfor %}
+</div>

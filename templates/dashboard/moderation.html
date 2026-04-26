@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Moderation{% endblock %}
+{% block content %}
+<header class="mb-6">
+  <h1 class="text-2xl font-semibold text-[#2C3E94]">Moderation Queue</h1>
+  <p class="text-sm text-slate-500">Review reported content.</p>
+</header>
+<div class="space-y-3">
+  {% for report in reports %}
+    <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="font-medium text-slate-900">{{ report.post.title }}</div>
+          <div class="text-sm text-slate-500">Reported by {{ report.reporter.username }} - {{ report.get_reason_display }}</div>
+          <div class="mt-1 text-sm text-slate-600">{{ report.details }}</div>
+        </div>
+        <div class="flex gap-2">
+          <form method="post" action="{% url 'interactions:resolve_report' report.pk 'resolved' %}">
+            {% csrf_token %}
+            <button class="rounded-md bg-green-600 px-3 py-1 text-sm text-white">Resolve</button>
+          </form>
+          <form method="post" action="{% url 'interactions:resolve_report' report.pk 'dismissed' %}">
+            {% csrf_token %}
+            <button class="rounded-md bg-slate-200 px-3 py-1 text-sm">Dismiss</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">No reports.</div>
+  {% endfor %}
+</div>
+{% endblock %}
