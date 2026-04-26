@@ -25,6 +25,15 @@ class UserModelTests(TestCase):
         self.assertEqual(user.role, "admin")
         self.assertTrue(user.is_campus_admin)
 
+    def test_superuser_rejects_student_role(self):
+        with self.assertRaisesMessage(ValueError, "Superuser must have role of admin."):
+            get_user_model().objects.create_superuser(
+                username="student-admin",
+                email="student-admin@example.com",
+                password="StrongPass123",
+                role="student",
+            )
+
 
 class AuthFlowTests(TestCase):
     def test_register_creates_student_and_redirects_to_feed(self):
