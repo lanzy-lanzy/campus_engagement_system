@@ -1,17 +1,49 @@
 {% extends "base.html" %}
-{% block title %}Feed{% endblock %}
+{% block title %}Feed - Campus Voice{% endblock %}
 {% block content %}
-<header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-  <div>
-    <h1 class="text-2xl font-semibold text-[#2C3E94]">Student Feed</h1>
-    <p class="text-sm text-slate-500">Ideas, concerns, and improvements from the campus community.</p>
-  </div>
-  <a href="{% url 'posts:create' %}" class="inline-flex items-center justify-center rounded-md bg-[#2C3E94] px-4 py-2 text-sm font-semibold text-white">New Post</a>
-</header>
-<div class="mb-5 flex flex-wrap gap-2">
-  <a class="rounded-md border px-3 py-2 text-sm {% if sort == 'latest' %}bg-[#2C3E94] text-white{% endif %}" href="?sort=latest" hx-get="?sort=latest" hx-target="#post-list">Latest</a>
-  <a class="rounded-md border px-3 py-2 text-sm {% if sort == 'most_liked' %}bg-[#2C3E94] text-white{% endif %}" href="?sort=most_liked" hx-get="?sort=most_liked" hx-target="#post-list">Most Liked</a>
-  <a class="rounded-md border px-3 py-2 text-sm {% if sort == 'trending' %}bg-[#2C3E94] text-white{% endif %}" href="?sort=trending" hx-get="?sort=trending" hx-target="#post-list">Trending</a>
+<!-- Create post CTA card -->
+<div class="cv-card p-4 mb-4 animate-fade-in">
+  <a href="{% url 'posts:create' %}" class="flex items-center gap-3">
+    {% if user.avatar %}
+      <img src="{{ user.avatar.url }}" class="cv-avatar">
+    {% else %}
+      <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ user.username|first|upper }}</div>
+    {% endif %}
+    <div class="flex-1 bg-[#f0f2f5] rounded-full px-4 py-2.5 text-[#65676b] text-[15px] hover:bg-[#e4e6eb] transition">What's on your mind, {{ user.username }}?</div>
+  </a>
 </div>
-{% include "posts/partials/post_list.html" %}
+
+<!-- Filters -->
+<div class="cv-card p-3 mb-4 animate-fade-in stagger-1">
+  <div class="flex flex-wrap items-center gap-2">
+    <a class="cv-chip {% if sort == 'latest' %}cv-chip-active{% else %}cv-chip-inactive{% endif %}" href="?sort=latest{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category }}{% endif %}">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      Latest
+    </a>
+    <a class="cv-chip {% if sort == 'most_liked' %}cv-chip-active{% else %}cv-chip-inactive{% endif %}" href="?sort=most_liked{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category }}{% endif %}">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.134c-.49 0-.96-.18-1.318-.5L8 18.5V13l3-7.5V3h1a2 2 0 012 2v5z"></path></svg>
+      Most Liked
+    </a>
+    <a class="cv-chip {% if sort == 'trending' %}cv-chip-active{% else %}cv-chip-inactive{% endif %}" href="?sort=trending{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category }}{% endif %}">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+      Trending
+    </a>
+    <div class="ml-auto flex items-center gap-2">
+      <form method="get" class="flex items-center gap-2">
+        <input type="hidden" name="sort" value="{{ sort }}">
+        <select name="category" class="cv-select text-[13px]" onchange="this.form.submit()">
+          <option value="">All Categories</option>
+          {% for cat_val, cat_label in categories %}
+            <option value="{{ cat_val }}" {% if category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Posts -->
+<div id="post-list" class="space-y-4">
+  {% include "posts/partials/post_list.html" %}
+</div>
 {% endblock %}

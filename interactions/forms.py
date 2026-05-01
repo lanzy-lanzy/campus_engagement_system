@@ -8,7 +8,7 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ("body", "parent")
         widgets = {
-            "body": forms.Textarea(attrs={"rows": 2, "placeholder": "Write a comment"}),
+            "body": forms.Textarea(attrs={"class": "w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-[#2C3E94] focus:outline-none focus:ring-1 focus:ring-[#2C3E94]", "rows": 2, "placeholder": "Write a comment"}),
             "parent": forms.HiddenInput(),
         }
 
@@ -18,5 +18,6 @@ class ReportForm(forms.ModelForm):
         model = Report
         fields = ("reason", "details")
         widgets = {
-            "details": forms.Textarea(attrs={"rows": 3, "placeholder": "Add helpful context"}),
+            "reason": forms.Select(attrs={"class": "w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-[#2C3E94] focus:outline-none focus:ring-1 focus:ring-[#2C3E94]"}),
+            "details": forms.Textarea(attrs={"class": "w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-[#2C3E94] focus:outline-none focus:ring-1 focus:ring-[#2C3E94]", "rows": 3, "placeholder": "Add helpful context"}),
         }

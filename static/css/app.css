@@ -1,8 +1,287 @@
-/* Custom styles for Campus Voice */
-:root {
-  --brand: #2C3E94;
+/* ===== Campus Voice – Facebook-inspired Design System ===== */
+
+/* --- Base --- */
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+/* --- Auth background --- */
+.auth-bg {
+  background: #f0f2f5;
 }
 
-body {
-  font-family: system-ui, -apple-system, sans-serif;
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in   { animation: fadeIn .35s ease-out both; }
+.animate-scale-in  { animation: scaleIn .25s ease-out both; }
+.animate-slide-down{ animation: slideDown .25s ease-out both; }
+.stagger-1 { animation-delay: .05s; }
+.stagger-2 { animation-delay: .1s; }
+.stagger-3 { animation-delay: .15s; }
+
+/* --- Card --- */
+.cv-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.1);
+  transition: box-shadow .2s ease;
+}
+.cv-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+
+/* --- Buttons --- */
+.btn-fb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all .15s ease;
+  border: none;
+  line-height: 1.2;
+}
+.btn-fb:active { transform: scale(.98); }
+
+.btn-primary-fb {
+  background: #1877f2;
+  color: #fff;
+}
+.btn-primary-fb:hover { background: #166fe5; }
+
+.btn-success-fb {
+  background: #42b72a;
+  color: #fff;
+}
+.btn-success-fb:hover { background: #36a420; }
+
+.btn-secondary-fb {
+  background: #e4e6eb;
+  color: #050505;
+}
+.btn-secondary-fb:hover { background: #d8dadf; }
+
+.btn-danger-fb {
+  background: #fa3e3e;
+  color: #fff;
+}
+.btn-danger-fb:hover { background: #e0302e; }
+
+.btn-ghost-fb {
+  background: transparent;
+  color: #65676b;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+.btn-ghost-fb:hover { background: #f0f2f5; color: #050505; }
+
+/* --- Inputs --- */
+.cv-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #dddfe2;
+  border-radius: 6px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #1c1e21;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  outline: none;
+}
+.cv-input:focus {
+  border-color: #1877f2;
+  box-shadow: 0 0 0 2px rgba(24,119,242,.2);
+}
+.cv-input::placeholder { color: #8a8d91; }
+
+.cv-select {
+  appearance: none;
+  padding: 10px 36px 10px 14px;
+  border: 1px solid #dddfe2;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1c1e21;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2365676b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+  cursor: pointer;
+  transition: border-color .15s ease;
+  outline: none;
+}
+.cv-select:focus { border-color: #1877f2; }
+
+/* --- Chip / Pill --- */
+.cv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+  border: none;
+}
+.cv-chip-active {
+  background: #e7f3ff;
+  color: #1877f2;
+}
+.cv-chip-inactive {
+  background: #e4e6eb;
+  color: #65676b;
+}
+.cv-chip-inactive:hover {
+  background: #d8dadf;
+}
+
+/* --- Category badges --- */
+.badge-suggestion  { background: #e7f3ff; color: #1877f2; }
+.badge-complaint   { background: #fee2e2; color: #dc2626; }
+.badge-improvement { background: #ecfdf5; color: #059669; }
+.badge-event_idea  { background: #fef3c7; color: #d97706; }
+
+/* --- Reaction button --- */
+.cv-react-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  border: none;
+  color: #65676b;
+  background: transparent;
+  flex: 1;
+  justify-content: center;
+}
+.cv-react-btn:hover { background: #f0f2f5; }
+.cv-react-btn.active { background: #e7f3ff; }
+
+.cv-picker {
+  display: flex;
+  gap: 4px;
+}
+.cv-picker .reaction-btn {
+  font-size: 20px;
+  padding: 6px 8px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.cv-picker .reaction-btn:hover {
+  transform: scale(1.2);
+  background: #f0f2f5;
+}
+
+/* --- Divider --- */
+.cv-divider {
+  height: 1px;
+  background: #ced0d4;
+  border: none;
+  margin: 0;
+}
+
+/* --- Avatar --- */
+.cv-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.cv-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* --- Stat card --- */
+.cv-stat-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.1);
+  transition: all .2s ease;
+}
+.cv-stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  transform: translateY(-1px);
+}
+
+/* --- Tooltip / Dropdown --- */
+.cv-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15), 0 0 0 1px rgba(0,0,0,.05);
+  min-width: 200px;
+  z-index: 100;
+  overflow: hidden;
+}
+.cv-dropdown a, .cv-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #1c1e21;
+  text-decoration: none;
+  transition: background .1s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+.cv-dropdown a:hover, .cv-dropdown button:hover {
+  background: #f0f2f5;
+}
+
+/* --- Top nav shadow --- */
+.cv-topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

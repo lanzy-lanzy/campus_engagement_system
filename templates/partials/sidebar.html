@@ -1,27 +1,78 @@
-<button type="button" class="fixed left-4 top-4 z-40 rounded-md bg-[#2C3E94] px-3 py-2 text-sm font-medium text-white lg:hidden" @click="sidebarOpen = true">Menu</button>
-<aside class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full border-r border-slate-200 bg-white px-5 py-6 shadow-xl transition lg:static lg:w-auto lg:translate-x-0 lg:shadow-none" :class="{ 'translate-x-0': sidebarOpen }">
-  <div class="flex items-center justify-between">
-    <a href="{% url 'posts:feed' %}" class="text-xl font-bold text-[#2C3E94]">Campus Voice</a>
-    <button class="lg:hidden" type="button" @click="sidebarOpen = false">Close</button>
+<button type="button" class="fixed left-4 top-4 z-40 rounded-xl bg-gradient-to-r from-[#2C3E94] to-[#3d5285] px-4 py-2.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 lg:hidden" @click="sidebarOpen = true" aria-label="Open menu">
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+</button>
+<aside class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full bg-white/95 backdrop-blur-xl px-6 py-8 shadow-2xl transition-all duration-300 ease-in-out lg:static lg:w-auto lg:translate-x-0 lg:shadow-none lg:bg-transparent lg:backdrop-blur-none" :class="{ 'translate-x-0': sidebarOpen }">
+  <div class="flex items-center justify-between mb-10">
+    <a href="{% url 'posts:feed' %}" class="group flex items-center gap-2">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2C3E94] to-[#5DADE2] flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+      </div>
+      <span class="text-xl font-bold font-display bg-gradient-to-r from-[#2C3E94] to-[#5DADE2] bg-clip-text text-transparent">Campus Voice</span>
+    </a>
+    <button class="rounded-lg p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition lg:hidden" type="button" @click="sidebarOpen = false" aria-label="Close menu">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
   </div>
   {% if user.is_authenticated %}
-    <nav class="mt-8 space-y-2 text-sm font-medium">
-      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'posts:feed' %}">Feed</a>
-      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'posts:create' %}">Create Post</a>
-      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'accounts:profile' %}">Profile</a>
+    <nav class="space-y-1">
+      <a class="nav-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:text-[#2C3E94] transition-all cursor-pointer" href="{% url 'posts:feed' %}">
+        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-[#2C3E94]/10 group-hover:text-[#2C3E94] transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+        </span>
+        Feed
+      </a>
+      <a class="nav-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:text-[#2C3E94] transition-all cursor-pointer" href="{% url 'posts:create' %}">
+        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-[#2C3E94]/10 hover:text-[#2C3E94] transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        </span>
+        Create Post
+      </a>
+      <a class="nav-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:text-[#2C3E94] transition-all cursor-pointer" href="{% url 'accounts:profile' %}">
+        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-[#2C3E94]/10 hover:text-[#2C3E94] transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        </span>
+        Profile
+      </a>
       {% if user.is_campus_admin %}
-        <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'dashboard:index' %}">Dashboard</a>
-        <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'dashboard:moderation' %}">Moderation</a>
+        <div class="my-4 border-t border-slate-200/60"></div>
+        <p class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Admin</p>
+        <a class="nav-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:text-[#2C3E94] transition-all cursor-pointer" href="{% url 'dashboard:index' %}">
+          <span class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500 hover:bg-purple-100 hover:text-purple-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          </span>
+          Dashboard
+        </a>
+        <a class="nav-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:text-[#2C3E94] transition-all cursor-pointer" href="{% url 'dashboard:moderation' %}">
+          <span class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500 hover:bg-red-100 hover:text-red-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          </span>
+          Moderation
+        </a>
       {% endif %}
     </nav>
-    <form method="post" action="{% url 'accounts:logout' %}" class="mt-8">
-      {% csrf_token %}
-      <button class="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700">Logout</button>
-    </form>
+    <div class="absolute bottom-6 left-6 right-6">
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+          Logout
+        </button>
+      </form>
+    </div>
   {% else %}
-    <nav class="mt-8 space-y-2 text-sm font-medium">
-      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'accounts:login' %}">Login</a>
-      <a class="block rounded-md px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-[#2C3E94]" href="{% url 'accounts:register' %}">Register</a>
+    <nav class="space-y-2">
+      <a class="nav-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:text-[#2C3E94] transition-all cursor-pointer" href="{% url 'accounts:login' %}">
+        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-[#2C3E94]/10 hover:text-[#2C3E94] transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+        </span>
+        Login
+      </a>
+      <a class="nav-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:text-[#2C3E94] transition-all cursor-pointer" href="{% url 'accounts:register' %}">
+        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-[#2C3E94]/10 hover:text-[#2C3E94] transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+        </span>
+        Register
+      </a>
     </nav>
   {% endif %}
 </aside>

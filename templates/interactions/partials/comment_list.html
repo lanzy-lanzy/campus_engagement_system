@@ -1,9 +1,45 @@
+{% load interaction_tags %}
 <div id="comments-{{ post.pk }}" class="space-y-3">
   {% for comment in comments %}
     {% if comment.status == "visible" and not comment.parent_id %}
-      <div class="rounded-md bg-slate-50 p-3 text-sm">
-        <div class="font-medium text-slate-800">{{ comment.author.username }}</div>
-        <p class="mt-1 text-slate-600">{{ comment.body }}</p>
+      <div class="flex items-start gap-2 group">
+        <div class="cv-avatar-placeholder w-8 h-8 text-xs bg-gradient-to-br from-[#65676b] to-[#8a8d91]">{{ comment.author.username|first|upper }}</div>
+        <div class="flex-1 min-w-0">
+          <div class="inline-block bg-[#f0f2f5] rounded-2xl px-3 py-2 max-w-full">
+            <span class="font-semibold text-[13px] text-[#050505]">{{ comment.author.username }}</span>
+            <p class="text-[15px] text-[#1c1e21] leading-snug">{{ comment.body }}</p>
+          </div>
+          {% include "interactions/partials/comment_actions.html" with comment=comment post=post %}
+          <div id="reply-form-{{ comment.pk }}"></div>
+          {% with replies=comment.replies.all %}
+          {% if replies.exists %}
+            <div class="mt-2 ml-4 space-y-2 border-l-2 border-[#ced0d4] pl-3">
+              {% for reply in replies %}
+                {% if reply.status == "visible" %}
+                  <div class="flex items-start gap-2">
+                    <div class="cv-avatar-placeholder w-6 h-6 text-[10px] bg-gradient-to-br from-[#65676b] to-[#8a8d91]">{{ reply.author.username|first|upper }}</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="inline-block bg-[#f0f2f5] rounded-2xl px-2 py-1 max-w-full">
+                        <span class="font-semibold text-[12px] text-[#050505]">{{ reply.author.username }}</span>
+                        <p class="text-[14px] text-[#1c1e21] leading-snug">{{ reply.body }}</p>
+                      </div>
+                      <div class="flex items-center gap-2 mt-0.5 ml-2 text-[11px] text-[#65676b]">
+                        <span>{{ reply.created_at|timesince }} ago</span>
+                        {% if reply.author == user or user.is_campus_admin %}
+                          <form method="post" action="{% url 'interactions:delete_comment' reply.pk %}" hx-post="{% url 'interactions:delete_comment' reply.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-500 hover:text-red-700 hover:underline cursor-pointer font-medium">Delete</button>
+                          </form>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% endwith %}
+        </div>
       </div>
     {% endif %}
   {% endfor %}

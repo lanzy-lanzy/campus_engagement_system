@@ -1,13 +1,107 @@
-<div id="reactions-{{ post.pk }}" class="flex flex-wrap items-center gap-2">
-  <form method="post" action="{% url 'interactions:toggle_reaction' post.pk 'like' %}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'like' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML">
-    {% csrf_token %}
-    <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm hover:bg-sky-50">Like {{ post.like_count }}</button>
-  </form>
-  <form method="post" action="{% url 'interactions:toggle_reaction' post.pk 'heart' %}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'heart' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML">
-    {% csrf_token %}
-    <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm hover:bg-sky-50">Heart {{ post.heart_count }}</button>
-  </form>
-  <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600">{{ post.comment_count }} comments</button>
-  <button class="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600" hx-get="{% url 'interactions:report_post' post.pk %}" hx-target="#report-{{ post.pk }}">Report</button>
-  <div id="report-{{ post.pk }}"></div>
+{% load interaction_tags %}
+{% with user_reaction=post|user_reaction:user %}
+<div id="reactions-{{ post.pk }}" 
+     class="flex items-center"
+     hx-get="{% url 'interactions:get_reaction_bar' post.pk %}"
+     hx-trigger="every 30s"
+     hx-swap="outerHTML">
+  <div class="relative flex-1" 
+       x-data="{ showPicker: false, holdTimer: null, wasLongPress: false }" 
+       @mouseleave="showPicker = false; wasLongPress = false; clearTimeout(holdTimer)">
+    <button 
+      type="button" 
+      class="cv-react-btn w-full {% if user_reaction %}active{% endif %} cursor-pointer flex items-center justify-center gap-1"
+      @mousedown="wasLongPress = false; holdTimer = setTimeout(() => { showPicker = true; wasLongPress = true; }, 400)"
+      @mouseup="clearTimeout(holdTimer)"
+      @touchstart="wasLongPress = false; holdTimer = setTimeout(() => { showPicker = true; wasLongPress = true; }, 400)"
+      @touchend="clearTimeout(holdTimer)"
+      @click="if (!wasLongPress && !showPicker) { htmx.ajax('POST', '{% url 'interactions:toggle_reaction' post.pk user_reaction|default:'like' %}', {target: '#reactions-{{ post.pk }}', swap: 'outerHTML', source: $el}) }"
+      @mouseenter="holdTimer = setTimeout(() => { showPicker = true; }, 600)"
+    >
+      {% if user_reaction == 'like' %}<span class="text-lg">👍</span>
+        <span class="capitalize">Like</span>
+      {% elif user_reaction == 'love' %}<span class="text-lg">❤️</span>
+        <span class="capitalize">Love</span>
+      {% elif user_reaction == 'wow' %}<span class="text-lg">😮</span>
+        <span class="capitalize">Wow</span>
+      {% elif user_reaction == 'sad' %}<span class="text-lg">😢</span>
+        <span class="capitalize">Sad</span>
+      {% elif user_reaction == 'angry' %}<span class="text-lg">😠</span>
+        <span class="capitalize">Angry</span>
+      {% elif user_reaction == 'haha' %}<span class="text-lg">😂</span>
+        <span class="capitalize">Haha</span>
+      {% else %}
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.812L5 21m9-10h-6m0 0V3a2 2 0 012-2h2.167a1 1 0 01.986.836l.653 4.155A1 1 0 0114.17 10H15m0 0h6"/></svg>
+        <span>Like</span>
+      {% endif %}
+    </button>
+    <div 
+      x-show="showPicker" 
+      x-transition 
+      class="cv-picker absolute bottom-full left-0 mb-1 bg-white rounded-full shadow-lg border border-[#ced0d4] flex items-center p-1 gap-1 z-50"
+      x-cloak>
+      <button 
+        type="button" 
+        class="reaction-btn" 
+        title="Like"
+        hx-post="{% url 'interactions:toggle_reaction' post.pk 'like' %}"
+        hx-target="#reactions-{{ post.pk }}"
+        hx-swap="outerHTML">
+        👍
+      </button>
+      <button 
+        type="button" 
+        class="reaction-btn" 
+        title="Love"
+        hx-post="{% url 'interactions:toggle_reaction' post.pk 'love' %}"
+        hx-target="#reactions-{{ post.pk }}"
+        hx-swap="outerHTML">
+        ❤️
+      </button>
+      <button 
+        type="button" 
+        class="reaction-btn" 
+        title="Wow"
+        hx-post="{% url 'interactions:toggle_reaction' post.pk 'wow' %}"
+        hx-target="#reactions-{{ post.pk }}"
+        hx-swap="outerHTML">
+        😮
+      </button>
+      <button 
+        type="button" 
+        class="reaction-btn" 
+        title="Sad"
+        hx-post="{% url 'interactions:toggle_reaction' post.pk 'sad' %}"
+        hx-target="#reactions-{{ post.pk }}"
+        hx-swap="outerHTML">
+        😢
+      </button>
+      <button 
+        type="button" 
+        class="reaction-btn" 
+        title="Angry"
+        hx-post="{% url 'interactions:toggle_reaction' post.pk 'angry' %}"
+        hx-target="#reactions-{{ post.pk }}"
+        hx-swap="outerHTML">
+        😠
+      </button>
+      <button 
+        type="button" 
+        class="reaction-btn" 
+        title="Haha"
+        hx-post="{% url 'interactions:toggle_reaction' post.pk 'haha' %}"
+        hx-target="#reactions-{{ post.pk }}"
+        hx-swap="outerHTML">
+        😂
+      </button>
+    </div>
+  </div>
+  <div class="flex-1">
+    <button type="button" class="cv-react-btn w-full cursor-pointer" hx-get="{% url 'interactions:report_post' post.pk %}" hx-target="#report-{{ post.pk }}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z"></path></svg>
+      Report
+    </button>
+  </div>
 </div>
+<div id="report-{{ post.pk }}"></div>
+{% endwith %}

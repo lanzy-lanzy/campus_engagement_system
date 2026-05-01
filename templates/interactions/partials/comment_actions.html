@@ -1,0 +1,56 @@
+{% load interaction_tags %}
+<div id="comment-actions-{{ comment.pk }}" class="flex items-center gap-3 mt-1 ml-3 text-[12px] text-[#65676b]">
+  <span>{{ comment.created_at|timesince }} ago</span>
+  <button type="button" class="hover:underline cursor-pointer font-medium" hx-get="{% url 'interactions:add_reply' comment.pk %}" hx-target="#reply-form-{{ comment.pk }}" hx-swap="innerHTML">Reply</button>
+  
+  {% with comment_user_reaction=comment|get_comment_reaction:user %}
+  <div class="relative flex items-center" 
+       x-data="{ showPicker: false, holdTimer: null, wasLongPress: false }" 
+       @mouseleave="showPicker = false; wasLongPress = false; clearTimeout(holdTimer)">
+      <button type="button" class="hover:underline cursor-pointer font-medium" 
+              @mousedown="wasLongPress = false; holdTimer = setTimeout(() => { showPicker = true; wasLongPress = true; }, 400)"
+              @mouseup="clearTimeout(holdTimer)"
+              @touchstart="wasLongPress = false; holdTimer = setTimeout(() => { showPicker = true; wasLongPress = true; }, 400)"
+              @touchend="clearTimeout(holdTimer)"
+              @click="if (!wasLongPress && !showPicker) { htmx.ajax('POST', '{% url 'interactions:toggle_comment_reaction' comment.pk comment_user_reaction|default:'like' %}', {target: '#comment-actions-{{ comment.pk }}', swap: 'outerHTML', source: $el}) }"
+              @mouseenter="holdTimer = setTimeout(() => { showPicker = true; }, 600)">
+        {% if comment_user_reaction %}
+          {% if comment_user_reaction == 'like' %}👍{% elif comment_user_reaction == 'love' %}❤️{% elif comment_user_reaction == 'wow' %}😮{% elif comment_user_reaction == 'sad' %}😢{% elif comment_user_reaction == 'angry' %}😠{% elif comment_user_reaction == 'haha' %}😂{% endif %}
+        {% else %}
+          Like
+        {% endif %}
+      </button>
+      <div x-show="showPicker" x-transition class="cv-picker absolute bottom-full left-0 mb-1 bg-white rounded-full shadow-lg border border-[#ced0d4] flex items-center p-1 gap-1 z-50" x-cloak>
+        <button type="button" class="reaction-btn text-lg" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'like' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click="showPicker = false">👍</button>
+        <button type="button" class="reaction-btn text-lg" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'love' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click="showPicker = false">❤️</button>
+        <button type="button" class="reaction-btn text-lg" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'haha' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click="showPicker = false">😂</button>
+      </div>
+  </div>
+  {% endwith %}
+
+  {% with comment_counts=comment|get_comment_reaction_counts %}
+  {% if comment_counts|total_reactions > 0 %}
+    <span class="flex items-center gap-1">
+      {% for kind, count in comment_counts.items %}
+        {% if count > 0 %}
+          <span class="text-sm">{% if kind == 'like' %}👍{% elif kind == 'love' %}❤️{% elif kind == 'wow' %}😮{% elif kind == 'sad' %}😢{% elif kind == 'angry' %}😠{% elif kind == 'haha' %}😂{% endif %}</span>
+        {% endif %}
+      {% endfor %}
+      <span class="text-[11px]">{{ comment_counts|total_reactions }}</span>
+    </span>
+  {% endif %}
+  {% endwith %}
+
+  {% if post.author == user or user.is_campus_admin %}
+    <form method="post" action="{% url 'interactions:hide_comment' comment.pk %}" hx-post="{% url 'interactions:hide_comment' comment.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="inline">
+      {% csrf_token %}
+      <button type="submit" class="text-red-500 hover:text-red-700 hover:underline cursor-pointer font-medium">Hide</button>
+    </form>
+  {% endif %}
+  {% if comment.author == user or user.is_campus_admin %}
+    <form method="post" action="{% url 'interactions:delete_comment' comment.pk %}" hx-post="{% url 'interactions:delete_comment' comment.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="inline">
+      {% csrf_token %}
+      <button type="submit" class="text-red-500 hover:text-red-700 hover:underline cursor-pointer font-medium">Delete</button>
+    </form>
+  {% endif %}
+</div>

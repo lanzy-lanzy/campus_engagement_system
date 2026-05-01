@@ -36,7 +36,8 @@ class AuthFlowTests(TestCase):
             is_staff=True,
         )
 
-        self.client.login(username=user.username, password="StrongPass123")
+        login_successful = self.client.login(email=user.email, password="StrongPass123")
+        self.assertTrue(login_successful)
         response = self.client.get(reverse("accounts:post_login_redirect"))
 
         self.assertRedirects(response, reverse("dashboard:index"))

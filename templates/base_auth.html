@@ -1,0 +1,32 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Campus Voice - Your campus community platform">
+  <title>{% block title %}Campus Voice{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="auth-bg min-h-screen flex items-center justify-center px-4 py-8 font-['Inter',system-ui,sans-serif]">
+  <div class="w-full max-w-[980px] flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-16 animate-fade-in">
+    <!-- Left hero -->
+    <div class="flex-1 text-center lg:text-left lg:pt-12 max-w-md">
+      <h1 class="text-[#1877f2] text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">Campus Voice</h1>
+      <p class="mt-4 text-lg lg:text-xl text-[#606770] leading-relaxed">Share ideas, raise concerns, and drive improvements across your campus community.</p>
+    </div>
+    <!-- Right card -->
+    <div class="w-full max-w-[396px]">
+      {% include "partials/messages.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+  <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

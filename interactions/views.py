@@ -20,13 +20,79 @@ def _htmx_error(request, message, status=400):
 def toggle_reaction(request, post_id, kind):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
-    if kind not in [Reaction.KIND_LIKE, Reaction.KIND_HEART]:
+    if kind not in [r[0] for r in Reaction.KIND_CHOICES]:
         return HttpResponseBadRequest("Unknown reaction")
 
     post = get_object_or_404(Post, pk=post_id, status=Post.STATUS_APPROVED)
+    
+    # Remove any existing reactions of a different kind from this user on this post
+    Reaction.objects.filter(post=post, user=request.user).exclude(kind=kind).delete()
+    
     reaction, created = Reaction.objects.get_or_create(post=post, user=request.user, kind=kind)
     if not created:
         reaction.delete()
+        
+    reaction_bar_html = render_to_string("interactions/partials/reaction_bar.html", {"post": post}, request=request)
+    post_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post}, request=request)
+    return HttpResponse(reaction_bar_html + post_stats_html)
+
+
+@login_required
+def toggle_comment_reaction(request, comment_id, kind):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    if kind not in [r[0] for r in Reaction.KIND_CHOICES]:
+        return HttpResponseBadRequest("Unknown reaction")
+
+    comment = get_object_or_404(Comment, pk=comment_id)
+    
+    # Remove any existing reactions of a different kind from this user on this comment
+    Reaction.objects.filter(comment=comment, user=request.user).exclude(kind=kind).delete()
+    
+    reaction, created = Reaction.objects.get_or_create(comment=comment, user=request.user, kind=kind)
+    if not created:
+        reaction.delete()
+        
+    return render(request, "interactions/partials/comment_actions.html", {"comment": comment, "post": comment.post})
+
+
+@login_required
+def hide_comment(request, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id)
+    post = comment.post
+    if post.author != request.user and not request.user.is_campus_admin:
+        raise PermissionDenied
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    comment.status = Comment.STATUS_HIDDEN
+    comment.save(update_fields=["status"])
+    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author")
+    return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": CommentForm()})
+
+
+@login_required
+def add_reply(request, comment_id):
+    parent_comment = get_object_or_404(Comment, pk=comment_id)
+    post = parent_comment.post
+    if request.method != "POST":
+        form = CommentForm()
+        return render(request, "interactions/partials/reply_form.html", {"comment": parent_comment, "form": form, "post": post})
+
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.author = request.user
+        comment.parent = parent_comment
+        comment.save()
+        form = CommentForm()
+    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author")
+    return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": form})
+
+
+@login_required
+def get_reaction_bar(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
     return render(request, "interactions/partials/reaction_bar.html", {"post": post})
 
 

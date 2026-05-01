@@ -59,3 +59,16 @@ class PostViewTests(TestCase):
         response = self.client.get(reverse("posts:edit", args=[post.pk]))
 
         self.assertEqual(response.status_code, 403)
+
+    def test_feed_renders_successfully(self):
+        Post.objects.create(
+            author=self.user,
+            title="Test Post",
+            description="Test Description",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+        response = self.client.get(reverse("posts:feed"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Post")

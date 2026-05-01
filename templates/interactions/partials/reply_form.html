@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'interactions:add_reply' comment.pk %}" hx-post="{% url 'interactions:add_reply' comment.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="flex items-center gap-2 mt-2">
+  {% csrf_token %}
+  <input type="text" name="body" class="cv-input text-sm py-2" placeholder="Write a reply..." required>
+  <button type="submit" class="btn-fb btn-primary-fb text-sm py-1 px-3">Reply</button>
+</form>

@@ -4,21 +4,49 @@ from django.db import models
 
 class Reaction(models.Model):
     KIND_LIKE = "like"
-    KIND_HEART = "heart"
+    KIND_LOVE = "love"
+    KIND_WOW = "wow"
+    KIND_SAD = "sad"
+    KIND_ANGRY = "angry"
+    KIND_HAHA = "haha"
 
     KIND_CHOICES = (
         (KIND_LIKE, "Like"),
-        (KIND_HEART, "Heart"),
+        (KIND_LOVE, "Love"),
+        (KIND_WOW, "Wow"),
+        (KIND_SAD, "Sad"),
+        (KIND_ANGRY, "Angry"),
+        (KIND_HAHA, "Haha"),
     )
+
+    REACTION_ICONS = {
+        KIND_LIKE: "👍",
+        KIND_LOVE: "❤️",
+        KIND_WOW: "😮",
+        KIND_SAD: "😢",
+        KIND_ANGRY: "😠",
+        KIND_HAHA: "😂",
+    }
+
+    REACTION_COLORS = {
+        KIND_LIKE: "#1877f2",
+        KIND_LOVE: "#e0245e",
+        KIND_WOW: "#f7b928",
+        KIND_SAD: "#f7b928",
+        KIND_ANGRY: "#f57c00",
+        KIND_HAHA: "#f7b928",
+    }
 
     post = models.ForeignKey("posts.Post", on_delete=models.CASCADE, related_name="reactions")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reactions")
+    comment = models.ForeignKey("interactions.Comment", on_delete=models.CASCADE, related_name="reactions", blank=True, null=True)
     kind = models.CharField(max_length=20, choices=KIND_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["post", "user", "kind"], name="unique_post_user_reaction_kind")
+            models.UniqueConstraint(fields=["post", "user", "kind"], name="unique_post_user_reaction_kind"),
+            models.UniqueConstraint(fields=["comment", "user", "kind"], name="unique_comment_user_reaction_kind"),
         ]
 
 

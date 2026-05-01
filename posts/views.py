@@ -1,5 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+from django.db import models
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -10,22 +12,44 @@ from .models import Post
 @login_required
 def feed(request):
     sort = request.GET.get("sort", "latest")
+    query = request.GET.get("q", "")
+    category = request.GET.get("category", "")
+    page = request.GET.get("page", 1)
     posts = Post.objects.filter(status=Post.STATUS_APPROVED).select_related("author")
 
+    if query:
+        posts = posts.filter(models.Q(title__icontains=query) | models.Q(description__icontains=query))
+
+    if category:
+        posts = posts.filter(category=category)
+
     if sort == "most_liked":
-        posts = posts.annotate(likes=Count("reactions", filter=Q(reactions__kind="like"))).order_by("-likes", "-created_at")
+        posts = posts.annotate(likes=Count("reactions")).order_by("-likes", "-created_at")
     elif sort == "trending":
         posts = posts.annotate(
-            likes=Count("reactions", filter=Q(reactions__kind="like")),
-            hearts=Count("reactions", filter=Q(reactions__kind="heart")),
+            total_reactions=Count("reactions"),
             comment_total=Count("comments"),
-        ).order_by("-hearts", "-likes", "-comment_total", "-created_at")
+        ).order_by("-total_reactions", "-comment_total", "-created_at")
     else:
         posts = posts.order_by("-created_at")
 
-    context = {"posts": posts, "sort": sort, "form": PostForm()}
-    template = "posts/partials/post_list.html" if request.headers.get("HX-Request") else "posts/feed.html"
-    return render(request, template, context)
+    paginator = Paginator(posts, 5)  # Smaller page size for better infinite scroll demo
+    page_obj = paginator.get_page(page)
+
+    context = {
+        "posts": page_obj.object_list,
+        "sort": sort,
+        "form": PostForm(),
+        "query": query,
+        "category": category,
+        "page_obj": page_obj,
+        "categories": Post.CATEGORY_CHOICES,
+    }
+
+    if request.headers.get("HX-Request") and not request.headers.get("HX-Boosted"):
+        return render(request, "posts/partials/post_list.html", context)
+
+    return render(request, "posts/feed.html", context)
 
 
 @login_required

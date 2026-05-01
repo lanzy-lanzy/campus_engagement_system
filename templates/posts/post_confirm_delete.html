@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Delete Post{% endblock %}
+{% block content %}
+<div class="cv-card p-6 text-center animate-scale-in max-w-md mx-auto">
+  <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+    <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+  </div>
+  <h1 class="text-xl font-bold text-[#1c1e21] mb-2">Delete Post?</h1>
+  <p class="text-[15px] text-[#65676b] mb-5">Are you sure you want to delete "<strong class="text-[#1c1e21]">{{ post.title }}</strong>"? This can't be undone.</p>
+  <form method="post" class="flex gap-3 justify-center">
+    {% csrf_token %}
+    <a href="{% url 'posts:feed' %}" class="btn-fb btn-secondary-fb">Cancel</a>
+    <button type="submit" class="btn-fb btn-danger-fb cursor-pointer">Delete</button>
+  </form>
+</div>
+{% endblock %}

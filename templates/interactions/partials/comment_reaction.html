@@ -1,0 +1,17 @@
+{% load interaction_tags %}
+{% with comment_user_reaction=comment|get_comment_reaction:user %}
+{% with comment_counts=comment|get_comment_reaction_counts %}
+{% if comment_counts|total_reactions > 0 %}
+<span id="comment-reactions-{{ comment.pk }}" class="flex items-center gap-1">
+  {% for kind, count in comment_counts.items %}
+    {% if count > 0 %}
+      <span class="text-sm">{% if kind == 'like' %}👍{% elif kind == 'love' %}❤️{% elif kind == 'wow' %}😮{% elif kind == 'sad' %}😢{% elif kind == 'angry' %}😠{% elif kind == 'haha' %}😂{% endif %}</span>
+    {% endif %}
+  {% endfor %}
+  <span class="text-[11px]">{{ comment_counts|total_reactions }}</span>
+</span>
+{% else %}
+<span id="comment-reactions-{{ comment.pk }}"></span>
+{% endif %}
+{% endwith %}
+{% endwith %}

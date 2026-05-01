@@ -1,5 +1,13 @@
-<form method="post" action="{% url 'interactions:report_post' post.pk %}" hx-post="{% url 'interactions:report_post' post.pk %}" hx-target="#report-{{ post.pk }}" hx-swap="outerHTML" class="mt-2 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+<form method="post" action="{% url 'interactions:report_post' post.pk %}" hx-post="{% url 'interactions:report_post' post.pk %}" hx-target="#report-{{ post.pk }}" hx-swap="outerHTML" class="mt-2 cv-card p-4 space-y-3 animate-scale-in">
   {% csrf_token %}
-  {{ form.as_p }}
-  <button class="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white">Submit Report</button>
+  {% for field in form %}
+    <div>
+      <label for="{{ field.id_for_label }}" class="block text-[13px] font-semibold text-[#65676b] mb-1">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+        {% for error in field.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+      {% endif %}
+    </div>
+  {% endfor %}
+  <button class="btn-fb btn-danger-fb text-sm cursor-pointer">Submit Report</button>
 </form>

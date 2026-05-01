@@ -1,22 +1,59 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard - Campus Voice{% endblock %}
 {% block content %}
-<header class="mb-6">
-  <h1 class="text-2xl font-semibold text-[#2C3E94]">Admin Dashboard</h1>
-  <p class="text-sm text-slate-500">Campus engagement overview.</p>
-</header>
-<div class="grid gap-4 sm:grid-cols-3">
-  <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-    <div class="text-sm text-slate-500">Total Posts</div>
-    <div class="text-3xl font-bold text-[#2C3E94]">{{ posts_count|default:0 }}</div>
+<div class="animate-fade-in">
+  <h1 class="text-2xl font-extrabold text-[#1c1e21] mb-1">Admin Dashboard</h1>
+  <p class="text-[15px] text-[#65676b] mb-5">Campus engagement overview and analytics</p>
+</div>
+
+<!-- Stats -->
+<div class="grid gap-4 sm:grid-cols-3 mb-5">
+  <div class="cv-stat-card animate-fade-in stagger-1">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[13px] font-semibold text-[#65676b] uppercase tracking-wide">Total Posts</span>
+      <div class="w-10 h-10 rounded-full bg-[#e7f3ff] flex items-center justify-center">
+        <svg class="w-5 h-5 text-[#1877f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+      </div>
+    </div>
+    <div class="text-3xl font-extrabold text-[#1c1e21]">{{ posts_count|default:0 }}</div>
+    <p class="text-[13px] text-[#65676b] mt-1">All time posts</p>
   </div>
-  <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-    <div class="text-sm text-slate-500">Total Users</div>
-    <div class="text-3xl font-bold text-[#2C3E94]">{{ users_count|default:0 }}</div>
+  <div class="cv-stat-card animate-fade-in stagger-2">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[13px] font-semibold text-[#65676b] uppercase tracking-wide">Total Users</span>
+      <div class="w-10 h-10 rounded-full bg-[#e7f6e9] flex items-center justify-center">
+        <svg class="w-5 h-5 text-[#42b72a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+      </div>
+    </div>
+    <div class="text-3xl font-extrabold text-[#1c1e21]">{{ users_count|default:0 }}</div>
+    <p class="text-[13px] text-[#65676b] mt-1">Registered students</p>
   </div>
-  <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-    <div class="text-sm text-slate-500">Open Reports</div>
-    <div class="text-3xl font-bold text-[#2C3E94]">{{ reports_count|default:0 }}</div>
+  <div class="cv-stat-card animate-fade-in stagger-3">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[13px] font-semibold text-[#65676b] uppercase tracking-wide">Open Reports</span>
+      <div class="w-10 h-10 rounded-full bg-[#fee2e2] flex items-center justify-center">
+        <svg class="w-5 h-5 text-[#fa3e3e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      </div>
+    </div>
+    <div class="text-3xl font-extrabold text-[#1c1e21]">{{ reports_count|default:0 }}</div>
+    <p class="text-[13px] text-[#65676b] mt-1 flex items-center gap-1.5">
+      {% if reports_count|default:0 > 0 %}<span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>Needs attention{% else %}<span class="w-2 h-2 rounded-full bg-green-500"></span>All clear{% endif %}
+    </p>
+  </div>
+</div>
+
+<!-- Quick actions -->
+<div class="cv-card p-5 animate-fade-in stagger-3">
+  <h2 class="text-[17px] font-bold text-[#1c1e21] mb-3">Quick Actions</h2>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'dashboard:moderation' %}" class="btn-fb btn-secondary-fb text-sm">
+      <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      Review Reports
+    </a>
+    <a href="{% url 'posts:feed' %}" class="btn-fb btn-secondary-fb text-sm">
+      <svg class="w-4 h-4 text-[#1877f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+      View Feed
+    </a>
   </div>
 </div>
 {% endblock %}

@@ -26,12 +26,27 @@ class Post(models.Model):
         (STATUS_REMOVED, "Removed"),
     )
 
+    ADMIN_STATUS_NONE = "none"
+    ADMIN_STATUS_REVIEW = "under_review"
+    ADMIN_STATUS_PLANNED = "planned"
+    ADMIN_STATUS_PROGRESS = "in_progress"
+    ADMIN_STATUS_COMPLETED = "completed"
+
+    ADMIN_STATUS_CHOICES = (
+        (ADMIN_STATUS_NONE, "No Status"),
+        (ADMIN_STATUS_REVIEW, "Under Review"),
+        (ADMIN_STATUS_PLANNED, "Planned"),
+        (ADMIN_STATUS_PROGRESS, "In Progress"),
+        (ADMIN_STATUS_COMPLETED, "Completed"),
+    )
+
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="posts")
     title = models.CharField(max_length=180)
     description = models.TextField()
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
     image = models.ImageField(upload_to="posts/", blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_APPROVED)
+    admin_status = models.CharField(max_length=20, choices=ADMIN_STATUS_CHOICES, default=ADMIN_STATUS_NONE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -45,16 +60,35 @@ class Post(models.Model):
         return reverse("posts:feed")
 
     @property
-    def like_count(self):
-        return self.reactions.filter(kind="like").count()
+    def reaction_count(self):
+        return self.reactions.count()
 
-    @property
-    def heart_count(self):
-        return self.reactions.filter(kind="heart").count()
+    def get_reaction_counts(self):
+        from interactions.models import Reaction
+        counts = {}
+        for kind, label in Reaction.KIND_CHOICES:
+            counts[kind] = self.reactions.filter(kind=kind).count()
+        return counts
+
+    def get_user_reaction(self, user):
+        if not user or not user.is_authenticated:
+            return None
+        reaction = self.reactions.filter(user=user).first()
+        return reaction.kind if reaction else None
+
+    def user_has_reaction(self, user, kind):
+        if not user or not user.is_authenticated:
+            return False
+        return self.reactions.filter(kind=kind, user=user).exists()
+
+    def user_reacted(self, user):
+        if not user or not user.is_authenticated:
+            return False
+        return self.reactions.filter(user=user).exists()
 
     @property
     def comment_count(self):
-        return self.comments.filter(status="visible").count()
+        return self.comments.filter(status="visible", parent__isnull=True).count()
 
     @property
     def report_count(self):
@@ -62,4 +96,4 @@ class Post(models.Model):
 
     @property
     def trending_score(self):
-        return (self.like_count * 2) + (self.heart_count * 3) + self.comment_count
+        return self.reaction_count + (self.comment_count * 2)

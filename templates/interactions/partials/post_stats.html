@@ -1,0 +1,23 @@
+{% load interaction_tags %}
+{% with reaction_counts=post|reaction_counts %}
+{% with total_reactions=reaction_counts|total_reactions %}
+<div id="post-stats-{{ post.pk }}" class="flex items-center justify-between px-4 py-2 text-[13px] text-[#65676b]" hx-swap-oob="true">
+  {% if total_reactions > 0 %}
+  <div class="flex items-center gap-1">
+    <div class="flex -space-x-1">
+      {% if reaction_counts.like > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#1877f2] flex items-center justify-center text-white text-[10px] z-10">👍</span>{% endif %}
+      {% if reaction_counts.love > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#e0245e] flex items-center justify-center text-white text-[10px] z-[9]">❤️</span>{% endif %}
+      {% if reaction_counts.wow > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f7b928] flex items-center justify-center text-white text-[10px] z-[8]">😮</span>{% endif %}
+      {% if reaction_counts.haha > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f7b928] flex items-center justify-center text-white text-[10px] z-[7]">😂</span>{% endif %}
+      {% if reaction_counts.sad > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f7b928] flex items-center justify-center text-white text-[10px] z-[6]">😢</span>{% endif %}
+      {% if reaction_counts.angry > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f57c00] flex items-center justify-center text-white text-[10px] z-[5]">😠</span>{% endif %}
+    </div>
+    <span>{{ total_reactions }}</span>
+  </div>
+  {% else %}
+  <span></span>
+  {% endif %}
+  <span>{{ post.comment_count }} comment{{ post.comment_count|pluralize }}</span>
+</div>
+{% endwith %}
+{% endwith %}
