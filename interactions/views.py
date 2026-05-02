@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 from posts.models import Post
+from notifications.services import notify_post_comment, notify_post_reaction, process_mentions
 
 from .forms import CommentForm, ReportForm
 from .models import Comment, Reaction, Report
@@ -24,14 +25,18 @@ def toggle_reaction(request, post_id, kind):
         return HttpResponseBadRequest("Unknown reaction")
 
     post = get_object_or_404(Post, pk=post_id, status=Post.STATUS_APPROVED)
-    
-    # Remove any existing reactions of a different kind from this user on this post
-    Reaction.objects.filter(post=post, user=request.user).exclude(kind=kind).delete()
-    
-    reaction, created = Reaction.objects.get_or_create(post=post, user=request.user, kind=kind)
-    if not created:
+
+    reaction = Reaction.objects.filter(post=post, comment__isnull=True, user=request.user).first()
+    if reaction and reaction.kind == kind:
         reaction.delete()
-        
+    elif reaction:
+        reaction.kind = kind
+        reaction.save(update_fields=["kind"])
+        notify_post_reaction(post, request.user)
+    else:
+        Reaction.objects.create(post=post, user=request.user, kind=kind)
+        notify_post_reaction(post, request.user)
+
     reaction_bar_html = render_to_string("interactions/partials/reaction_bar.html", {"post": post}, request=request)
     post_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post}, request=request)
     return HttpResponse(reaction_bar_html + post_stats_html)
@@ -45,14 +50,16 @@ def toggle_comment_reaction(request, comment_id, kind):
         return HttpResponseBadRequest("Unknown reaction")
 
     comment = get_object_or_404(Comment, pk=comment_id)
-    
-    # Remove any existing reactions of a different kind from this user on this comment
-    Reaction.objects.filter(comment=comment, user=request.user).exclude(kind=kind).delete()
-    
-    reaction, created = Reaction.objects.get_or_create(comment=comment, user=request.user, kind=kind)
-    if not created:
+
+    reaction = Reaction.objects.filter(comment=comment, user=request.user).first()
+    if reaction and reaction.kind == kind:
         reaction.delete()
-        
+    elif reaction:
+        reaction.kind = kind
+        reaction.save(update_fields=["kind"])
+    else:
+        Reaction.objects.create(comment=comment, user=request.user, kind=kind)
+
     return render(request, "interactions/partials/comment_actions.html", {"comment": comment, "post": comment.post})
 
 
@@ -85,8 +92,10 @@ def add_reply(request, comment_id):
         comment.author = request.user
         comment.parent = parent_comment
         comment.save()
+        process_mentions(request.user, comment.body, comment=comment)
+        notify_post_comment(post, comment)
         form = CommentForm()
-    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author")
+    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author").prefetch_related("mentions__recipient", "replies__mentions__recipient")
     return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": form})
 
 
@@ -109,8 +118,10 @@ def add_comment(request, post_id):
         comment.post = post
         comment.author = request.user
         comment.save()
+        process_mentions(request.user, comment.body, comment=comment)
+        notify_post_comment(post, comment)
         form = CommentForm()
-    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author")
+    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author").prefetch_related("mentions__recipient", "replies__mentions__recipient")
     return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": form})
 
 

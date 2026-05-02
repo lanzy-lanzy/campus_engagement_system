@@ -1,0 +1,15 @@
+<div id="chat-messages" class="cv-chat-messages">
+  {% for message in messages %}
+    <div class="cv-chat-message-row {% if message.sender == user %}outgoing{% else %}incoming{% endif %}">
+      {% if message.sender != user %}
+        <span class="cv-chat-bubble-avatar">{{ message.sender.username|first|upper }}</span>
+      {% endif %}
+      <div class="cv-chat-bubble-wrap">
+        <div class="cv-chat-bubble">{{ message.body|linebreaksbr }}</div>
+        <div class="cv-chat-time">{{ message.created_at|time:"g:i A" }}</div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="cv-chat-thread-empty">No messages yet. Say hello.</div>
+  {% endfor %}
+</div>

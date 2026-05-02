@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<section class="cv-card cv-notifications-panel">
+  <div class="cv-notifications-head">
+    <h1>Notifications</h1>
+    <span>Recent activity</span>
+  </div>
+  <div class="cv-notifications-list">
+    {% for notification in notifications %}
+      <a href="{{ notification.target_url }}" class="cv-notification-item {% if notification.is_unread %}unread{% endif %}">
+        <span class="cv-notification-avatar">{{ notification.actor.username|first|upper }}</span>
+        <span class="min-w-0 flex-1">
+          <span class="cv-notification-message">{{ notification.message }}</span>
+          {% if notification.post %}
+            <span class="cv-notification-preview">{{ notification.post.title }}</span>
+          {% endif %}
+          <span class="cv-notification-time">{{ notification.created_at|timesince }} ago</span>
+        </span>
+      </a>
+    {% empty %}
+      <div class="cv-notification-empty">No notifications yet.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

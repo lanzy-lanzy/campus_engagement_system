@@ -11,4 +11,6 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("redirect/", views.post_login_redirect, name="post_login_redirect"),
     path("profile/", views.profile, name="profile"),
+    path("friends/<int:user_pk>/request/", views.request_friend, name="request_friend"),
+    path("friends/search/", views.search_friends, name="search_friends"),
 ]

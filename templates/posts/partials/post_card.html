@@ -1,47 +1,51 @@
-{% load interaction_tags %}
+{% load interaction_tags notification_tags %}
 <article id="post-{{ post.pk }}" class="cv-card animate-fade-in">
-  <!-- Header -->
   <div class="flex items-start gap-3 p-4 pb-0">
     <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ post.author.username|first|upper }}</div>
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2">
         <span class="font-semibold text-[15px] text-[#050505] truncate">{{ post.author.get_full_name|default:post.author.username }}</span>
+        {% if post.is_shared_post %}
+          <span class="text-[13px] text-[#65676b]">shared a post</span>
+        {% endif %}
         {% if post.author.department %}
-          <span class="text-[13px] text-[#65676b]">· {{ post.author.department }}</span>
+          <span class="text-[13px] text-[#65676b]">- {{ post.author.department }}</span>
         {% endif %}
       </div>
-      <div class="flex items-center gap-2 text-[13px] text-[#65676b]">
+      <div class="flex flex-wrap items-center gap-2 text-[13px] text-[#65676b]">
         <span>{{ post.created_at|timesince }} ago</span>
-        <span>·</span>
+        <span>-</span>
         <span class="cv-chip text-[11px] py-0.5 px-2 badge-{{ post.category }}">{{ post.get_category_display }}</span>
         {% if post.admin_status != 'none' %}
-          <span>·</span>
+          <span>-</span>
           {% if post.admin_status == 'under_review' %}
             <span class="text-amber-600 font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>Under Review</span>
           {% elif post.admin_status == 'planned' %}
-            <span class="text-blue-600 font-medium">📋 Planned</span>
+            <span class="text-blue-600 font-medium">Planned</span>
           {% elif post.admin_status == 'in_progress' %}
-            <span class="text-indigo-600 font-medium">🔄 In Progress</span>
+            <span class="text-indigo-600 font-medium">In Progress</span>
           {% elif post.admin_status == 'completed' %}
-            <span class="text-green-600 font-medium">✅ Completed</span>
+            <span class="text-green-600 font-medium">Completed</span>
           {% endif %}
         {% endif %}
       </div>
     </div>
     {% if post.author == user or user.is_campus_admin %}
       <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-        <button @click="open = !open" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#f0f2f5] transition cursor-pointer text-[#65676b]">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="4" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="10" cy="16" r="1.5"/></svg>
+        <button @click="open = !open" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#f0f2f5] transition cursor-pointer text-[#65676b]" aria-label="Post options">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="4" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="10" cy="16" r="1.5"/></svg>
         </button>
         <div x-show="open" x-transition class="cv-dropdown right-0 min-w-[160px]" x-cloak>
-          <a href="{% url 'posts:edit' post.pk %}">
-            <svg class="w-4 h-4 text-[#65676b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-            Edit post
-          </a>
+          {% if not post.is_shared_post %}
+            <a href="{% url 'posts:edit' post.pk %}">
+              <svg class="w-4 h-4 text-[#65676b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              Edit post
+            </a>
+          {% endif %}
           <form method="post" action="{% url 'posts:delete' post.pk %}" hx-post="{% url 'posts:delete' post.pk %}" hx-target="#post-list">
             {% csrf_token %}
             <button type="submit" class="text-red-600">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
               Delete post
             </button>
           </form>
@@ -50,29 +54,30 @@
     {% endif %}
   </div>
 
-  <!-- Content -->
   <div class="px-4 pt-3 pb-2">
-    <h2 class="text-[17px] font-semibold text-[#050505] mb-1">{{ post.title }}</h2>
-    <p class="whitespace-pre-line text-[15px] leading-relaxed text-[#1c1e21]">{{ post.description }}</p>
+    {% if post.is_shared_post %}
+      {% if post.description %}
+        <p class="whitespace-pre-line text-[15px] leading-relaxed text-[#1c1e21] mb-3">{{ post.description|mentionize:post }}</p>
+      {% endif %}
+      {% include "posts/partials/shared_post_preview.html" %}
+    {% else %}
+      <h2 class="text-[17px] font-semibold text-[#050505] mb-1">{{ post.title }}</h2>
+      <p class="whitespace-pre-line text-[15px] leading-relaxed text-[#1c1e21]">{{ post.description|mentionize:post }}</p>
+    {% endif %}
   </div>
 
-  <!-- Image -->
-  {% if post.image %}
-    <div class="mt-1 border-t border-b border-[#ced0d4]">
-      <img src="{{ post.image.url }}" alt="" class="w-full max-h-[500px] object-cover">
-    </div>
+  {% if not post.is_shared_post %}
+    {% include "posts/partials/post_media_grid.html" with post=post %}
   {% endif %}
 
-  <!-- Stats row -->
   {% include "interactions/partials/post_stats.html" with post=post %}
 
-  <!-- Action buttons -->
   <hr class="cv-divider mx-4">
   <div class="px-2 py-1">
     {% include "interactions/partials/reaction_bar.html" %}
   </div>
+  {% include "posts/partials/share_slot.html" with post=post %}
 
-  <!-- Comments -->
   <hr class="cv-divider mx-4">
   <div class="px-4 py-3">
     {% include "interactions/partials/comment_list.html" with post=post comments=post.comments.all form=None %}

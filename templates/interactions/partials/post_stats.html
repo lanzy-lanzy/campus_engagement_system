@@ -5,19 +5,19 @@
   {% if total_reactions > 0 %}
   <div class="flex items-center gap-1">
     <div class="flex -space-x-1">
-      {% if reaction_counts.like > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#1877f2] flex items-center justify-center text-white text-[10px] z-10">👍</span>{% endif %}
-      {% if reaction_counts.love > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#e0245e] flex items-center justify-center text-white text-[10px] z-[9]">❤️</span>{% endif %}
-      {% if reaction_counts.wow > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f7b928] flex items-center justify-center text-white text-[10px] z-[8]">😮</span>{% endif %}
-      {% if reaction_counts.haha > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f7b928] flex items-center justify-center text-white text-[10px] z-[7]">😂</span>{% endif %}
-      {% if reaction_counts.sad > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f7b928] flex items-center justify-center text-white text-[10px] z-[6]">😢</span>{% endif %}
-      {% if reaction_counts.angry > 0 %}<span class="w-[18px] h-[18px] rounded-full bg-[#f57c00] flex items-center justify-center text-white text-[10px] z-[5]">😠</span>{% endif %}
+      {% if reaction_counts.like > 0 %}<span class="cv-reaction-badge bg-[#1877f2] z-10">{{ "like"|reaction_icon }}</span>{% endif %}
+      {% if reaction_counts.love > 0 %}<span class="cv-reaction-badge bg-[#e0245e] z-[9]">{{ "love"|reaction_icon }}</span>{% endif %}
+      {% if reaction_counts.wow > 0 %}<span class="cv-reaction-badge bg-[#f7b928] z-[8]">{{ "wow"|reaction_icon }}</span>{% endif %}
+      {% if reaction_counts.haha > 0 %}<span class="cv-reaction-badge bg-[#f7b928] z-[7]">{{ "haha"|reaction_icon }}</span>{% endif %}
+      {% if reaction_counts.sad > 0 %}<span class="cv-reaction-badge bg-[#f7b928] z-[6]">{{ "sad"|reaction_icon }}</span>{% endif %}
+      {% if reaction_counts.angry > 0 %}<span class="cv-reaction-badge bg-[#f57c00] z-[5]">{{ "angry"|reaction_icon }}</span>{% endif %}
     </div>
     <span>{{ total_reactions }}</span>
   </div>
   {% else %}
   <span></span>
   {% endif %}
-  <span>{{ post.comment_count }} comment{{ post.comment_count|pluralize }}</span>
+  <span>{{ post.comment_count }} comment{{ post.comment_count|pluralize }}{% if post.share_count %} - {{ post.share_count }} share{{ post.share_count|pluralize }}{% endif %}</span>
 </div>
 {% endwith %}
 {% endwith %}

@@ -17,11 +17,20 @@
 <body class="bg-[#f0f2f5] text-[#1c1e21] min-h-screen font-['Inter',system-ui,sans-serif]" x-data="{ mobileMenu: false, profileMenu: false }" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include "partials/topnav.html" %}
   <main class="pt-[56px] min-h-[calc(100vh-56px)]">
-    <div class="max-w-[680px] mx-auto px-4 py-5">
+    <div class="{% block main_container_class %}cv-page-narrow{% endblock %} mx-auto px-4 py-5">
       {% include "partials/messages.html" %}
       {% block content %}{% endblock %}
     </div>
   </main>
   <script src="{% static 'js/app.js' %}"></script>
+  <script>
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof initMentions === 'function') initMentions();
+      });
+    } else {
+      if (typeof initMentions === 'function') initMentions();
+    }
+  </script>
 </body>
 </html>

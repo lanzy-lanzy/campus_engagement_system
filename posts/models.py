@@ -47,6 +47,8 @@ class Post(models.Model):
     image = models.ImageField(upload_to="posts/", blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_APPROVED)
     admin_status = models.CharField(max_length=20, choices=ADMIN_STATUS_CHOICES, default=ADMIN_STATUS_NONE)
+    shared_from = models.ForeignKey("self", on_delete=models.SET_NULL, related_name="shares", blank=True, null=True)
+    shared_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -61,30 +63,42 @@ class Post(models.Model):
 
     @property
     def reaction_count(self):
-        return self.reactions.count()
+        return self.reactions.filter(comment__isnull=True).count()
 
     def get_reaction_counts(self):
         from interactions.models import Reaction
         counts = {}
         for kind, label in Reaction.KIND_CHOICES:
-            counts[kind] = self.reactions.filter(kind=kind).count()
+            counts[kind] = self.reactions.filter(kind=kind, comment__isnull=True).count()
         return counts
 
     def get_user_reaction(self, user):
         if not user or not user.is_authenticated:
             return None
-        reaction = self.reactions.filter(user=user).first()
+        reaction = self.reactions.filter(user=user, comment__isnull=True).first()
         return reaction.kind if reaction else None
 
     def user_has_reaction(self, user, kind):
         if not user or not user.is_authenticated:
             return False
-        return self.reactions.filter(kind=kind, user=user).exists()
+        return self.reactions.filter(kind=kind, user=user, comment__isnull=True).exists()
 
     def user_reacted(self, user):
         if not user or not user.is_authenticated:
             return False
-        return self.reactions.filter(user=user).exists()
+        return self.reactions.filter(user=user, comment__isnull=True).exists()
+
+    @property
+    def is_shared_post(self):
+        return self.shared_from_id is not None
+
+    @property
+    def share_source(self):
+        return self.shared_from or self
+
+    @property
+    def share_count(self):
+        return self.shares.filter(status=self.STATUS_APPROVED).count()
 
     @property
     def comment_count(self):
@@ -97,3 +111,25 @@ class Post(models.Model):
     @property
     def trending_score(self):
         return self.reaction_count + (self.comment_count * 2)
+
+
+class PostAttachment(models.Model):
+    TYPE_IMAGE = "image"
+    TYPE_VIDEO = "video"
+
+    MEDIA_CHOICES = (
+        (TYPE_IMAGE, "Image"),
+        (TYPE_VIDEO, "Video"),
+    )
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="attachments")
+    file = models.FileField(upload_to="posts/attachments/")
+    media_type = models.CharField(max_length=10, choices=MEDIA_CHOICES)
+    position = models.PositiveSmallIntegerField(default=0)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("position", "id")
+
+    def __str__(self):
+        return f"{self.get_media_type_display()} for {self.post_id}"

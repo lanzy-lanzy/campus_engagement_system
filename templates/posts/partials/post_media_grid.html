@@ -1,0 +1,21 @@
+{% with attachments=post.attachments.all %}
+  {% if attachments %}
+    <div class="cv-media-grid cv-media-count-{{ attachments|length }}">
+      {% for attachment in attachments %}
+        <div class="cv-media-item">
+          {% if attachment.media_type == "video" %}
+            <video src="{{ attachment.file.url }}" controls preload="metadata"></video>
+          {% else %}
+            <img src="{{ attachment.file.url }}" alt="">
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% elif post.image %}
+    <div class="cv-media-grid cv-media-count-1">
+      <div class="cv-media-item">
+        <img src="{{ post.image.url }}" alt="">
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}

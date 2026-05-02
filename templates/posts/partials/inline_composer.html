@@ -1,0 +1,72 @@
+<div id="feed-composer" class="cv-card p-4 mb-4 animate-fade-in" {% if oob %}hx-swap-oob="outerHTML"{% endif %}>
+  <div x-data="{ open: {% if form.errors %}true{% else %}false{% endif %} }">
+    <button type="button" class="flex w-full items-center gap-3 text-left" @click="open = true">
+      {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" class="cv-avatar" alt="">
+      {% else %}
+        <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ user.username|first|upper }}</div>
+      {% endif %}
+      <span class="flex-1 bg-[#f0f2f5] rounded-full px-4 py-2.5 text-[#65676b] text-[15px] hover:bg-[#e4e6eb] transition">What's on your mind, {{ user.username }}?</span>
+    </button>
+
+    <form method="post"
+          action="{% url 'posts:create' %}"
+          enctype="multipart/form-data"
+          hx-post="{% url 'posts:create' %}"
+          hx-target="#feed-composer"
+          hx-swap="outerHTML"
+          hx-encoding="multipart/form-data"
+          class="mt-4 space-y-3"
+          x-show="open"
+          x-transition>
+      {% csrf_token %}
+      <div>
+        <label for="{{ form.title.id_for_label }}" class="sr-only">Title</label>
+        <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" class="cv-input" placeholder="Post title">
+        {% for error in form.title.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div>
+        <label for="{{ form.description.id_for_label }}" class="sr-only">Description</label>
+        <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="4" class="cv-input resize-none" placeholder="Share the details...">{{ form.description.value|default:'' }}</textarea>
+        {% for error in form.description.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div>
+          <label for="{{ form.category.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1">Category</label>
+          <select name="{{ form.category.name }}" id="{{ form.category.id_for_label }}" class="cv-select w-full">
+            {% for value, label in form.category.field.choices %}
+              <option value="{{ value }}" {% if form.category.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% for error in form.category.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="id_images" class="block text-[13px] font-semibold text-[#606770] mb-1">Images</label>
+          <input type="file" name="images" id="id_images" accept="image/*" multiple class="cv-file-input">
+          <p class="mt-1 text-[12px] text-[#65676b]">Up to 5 images</p>
+        </div>
+      </div>
+
+      <div>
+        <label for="id_video" class="block text-[13px] font-semibold text-[#606770] mb-1">Video</label>
+        <input type="file" name="video" id="id_video" accept="video/*" class="cv-file-input">
+        <p class="mt-1 text-[12px] text-[#65676b]">Optional, 1 video per post</p>
+      </div>
+
+      <div class="cv-media-note">
+        <span>Photo/video uploads appear inside the post after publishing.</span>
+      </div>
+
+      <div>
+        {% for error in form.non_field_errors %}<p class="text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-[#ced0d4] pt-3">
+        <button type="button" class="btn-fb btn-secondary-fb" @click="open = false">Cancel</button>
+        <button type="submit" class="btn-fb btn-primary-fb">Post</button>
+      </div>
+    </form>
+  </div>
+</div>

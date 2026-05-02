@@ -4,26 +4,32 @@
   <button type="button" class="hover:underline cursor-pointer font-medium" hx-get="{% url 'interactions:add_reply' comment.pk %}" hx-target="#reply-form-{{ comment.pk }}" hx-swap="innerHTML">Reply</button>
   
   {% with comment_user_reaction=comment|get_comment_reaction:user %}
-  <div class="relative flex items-center" 
-       x-data="{ showPicker: false, holdTimer: null, wasLongPress: false }" 
-       @mouseleave="showPicker = false; wasLongPress = false; clearTimeout(holdTimer)">
+  <div class="relative flex items-center"
+       data-current-reaction="{{ comment_user_reaction|default:'' }}"
+       x-data="{ showPicker: false, holdTimer: null, hideTimer: null, wasLongPress: false }"
+       @mouseenter="clearTimeout(hideTimer)"
+       @mouseleave="clearTimeout(holdTimer); hideTimer = setTimeout(() => { showPicker = false; wasLongPress = false; }, 220)">
       <button type="button" class="hover:underline cursor-pointer font-medium" 
+              aria-pressed="{% if comment_user_reaction %}true{% else %}false{% endif %}"
               @mousedown="wasLongPress = false; holdTimer = setTimeout(() => { showPicker = true; wasLongPress = true; }, 400)"
               @mouseup="clearTimeout(holdTimer)"
               @touchstart="wasLongPress = false; holdTimer = setTimeout(() => { showPicker = true; wasLongPress = true; }, 400)"
               @touchend="clearTimeout(holdTimer)"
               @click="if (!wasLongPress && !showPicker) { htmx.ajax('POST', '{% url 'interactions:toggle_comment_reaction' comment.pk comment_user_reaction|default:'like' %}', {target: '#comment-actions-{{ comment.pk }}', swap: 'outerHTML', source: $el}) }"
-              @mouseenter="holdTimer = setTimeout(() => { showPicker = true; }, 600)">
+              @mouseenter="clearTimeout(hideTimer); holdTimer = setTimeout(() => { showPicker = true; }, 250)">
         {% if comment_user_reaction %}
-          {% if comment_user_reaction == 'like' %}👍{% elif comment_user_reaction == 'love' %}❤️{% elif comment_user_reaction == 'wow' %}😮{% elif comment_user_reaction == 'sad' %}😢{% elif comment_user_reaction == 'angry' %}😠{% elif comment_user_reaction == 'haha' %}😂{% endif %}
+          {{ comment_user_reaction|reaction_icon }}
         {% else %}
           Like
         {% endif %}
       </button>
-      <div x-show="showPicker" x-transition class="cv-picker absolute bottom-full left-0 mb-1 bg-white rounded-full shadow-lg border border-[#ced0d4] flex items-center p-1 gap-1 z-50" x-cloak>
-        <button type="button" class="reaction-btn text-lg" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'like' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click="showPicker = false">👍</button>
-        <button type="button" class="reaction-btn text-lg" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'love' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click="showPicker = false">❤️</button>
-        <button type="button" class="reaction-btn text-lg" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'haha' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click="showPicker = false">😂</button>
+      <div x-show="showPicker" x-transition class="cv-picker absolute bottom-full left-0 z-50" @mouseenter="clearTimeout(hideTimer)" @mouseleave="hideTimer = setTimeout(() => { showPicker = false; wasLongPress = false; }, 220)" x-cloak>
+        <button type="button" class="reaction-btn text-lg" aria-label="Like" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'like' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "like"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn text-lg" aria-label="Love" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'love' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "love"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn text-lg" aria-label="Wow" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'wow' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "wow"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn text-lg" aria-label="Sad" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'sad' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "sad"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn text-lg" aria-label="Angry" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'angry' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "angry"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn text-lg" aria-label="Haha" hx-post="{% url 'interactions:toggle_comment_reaction' comment.pk 'haha' %}" hx-target="#comment-actions-{{ comment.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "haha"|reaction_icon }}</button>
       </div>
   </div>
   {% endwith %}
@@ -33,7 +39,7 @@
     <span class="flex items-center gap-1">
       {% for kind, count in comment_counts.items %}
         {% if count > 0 %}
-          <span class="text-sm">{% if kind == 'like' %}👍{% elif kind == 'love' %}❤️{% elif kind == 'wow' %}😮{% elif kind == 'sad' %}😢{% elif kind == 'angry' %}😠{% elif kind == 'haha' %}😂{% endif %}</span>
+          <span class="text-sm">{{ kind|reaction_icon }}</span>
         {% endif %}
       {% endfor %}
       <span class="text-[11px]">{{ comment_counts|total_reactions }}</span>

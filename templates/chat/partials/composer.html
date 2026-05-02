@@ -1,0 +1,15 @@
+<form id="chat-composer"
+      method="post"
+      action="{% url 'chat:send' active_conversation.pk %}"
+      hx-post="{% url 'chat:send' active_conversation.pk %}"
+      hx-target="#chat-messages"
+      hx-swap="outerHTML"
+      class="cv-chat-composer"
+      {% if oob %}hx-swap-oob="outerHTML"{% endif %}>
+  {% csrf_token %}
+  {{ form.body }}
+  <button type="submit" class="cv-chat-send" aria-label="Send message">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2 .01 7Z"/></svg>
+  </button>
+  {% for error in form.body.errors %}<p class="cv-chat-error">{{ error }}</p>{% endfor %}
+</form>

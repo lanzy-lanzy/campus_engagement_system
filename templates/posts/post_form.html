@@ -5,22 +5,46 @@
   <h1 class="text-xl font-bold text-[#1c1e21] mb-4">{{ mode }} Post</h1>
   <form method="post" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
-    {% for field in form %}
+    <div>
+      <label for="{{ form.title.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Title</label>
+      <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" class="cv-input" placeholder="Post title...">
+      {% for error in form.title.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.description.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Description</label>
+      <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="5" class="cv-input resize-none" placeholder="Share the details... Use @username to mention friends" data-mentions>{{ form.description.value|default:'' }}</textarea>
+      {% for error in form.description.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.category.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Category</label>
+      <select name="{{ form.category.name }}" id="{{ form.category.id_for_label }}" class="cv-select w-full">
+        {% for value, label in form.category.field.choices %}
+          <option value="{{ value }}" {% if form.category.value == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% for error in form.category.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    {% if post %}
+      {% include "posts/partials/post_media_grid.html" with post=post %}
+    {% endif %}
+
+    <div class="grid gap-3 sm:grid-cols-2">
       <div>
-        <label for="{{ field.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">{{ field.label }}</label>
-        {% if field.field.widget.input_type == 'textarea' %}
-          <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" rows="5" class="cv-input resize-none" placeholder="{{ field.label }}..." {% if field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}>{{ field.value|default:'' }}</textarea>
-        {% else %}
-          <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}" class="cv-input" placeholder="{{ field.label }}..." {% if field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}>
-        {% endif %}
-        {% if field.help_text %}
-          <p id="{{ field.id_for_label }}-help" class="mt-1 text-[12px] text-[#65676b]">{{ field.help_text }}</p>
-        {% endif %}
-        {% if field.errors %}
-          {% for error in field.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
-        {% endif %}
+        <label for="id_images" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Images</label>
+        <input type="file" name="images" id="id_images" accept="image/*" multiple class="cv-file-input">
+        <p class="mt-1 text-[12px] text-[#65676b]">Attach up to 5 images per post.</p>
       </div>
-    {% endfor %}
+      <div>
+        <label for="id_video" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Video</label>
+        <input type="file" name="video" id="id_video" accept="video/*" class="cv-file-input">
+        <p class="mt-1 text-[12px] text-[#65676b]">Attach 1 optional video per post.</p>
+      </div>
+    </div>
+
+    {% for error in form.non_field_errors %}<p class="text-[13px] text-red-600">{{ error }}</p>{% endfor %}
     <hr class="cv-divider">
     <div class="flex items-center gap-3">
       <button type="submit" class="btn-fb btn-primary-fb cursor-pointer">

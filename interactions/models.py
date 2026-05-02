@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 
 
 class Reaction(models.Model):
@@ -20,12 +21,12 @@ class Reaction(models.Model):
     )
 
     REACTION_ICONS = {
-        KIND_LIKE: "👍",
-        KIND_LOVE: "❤️",
-        KIND_WOW: "😮",
-        KIND_SAD: "😢",
-        KIND_ANGRY: "😠",
-        KIND_HAHA: "😂",
+        KIND_LIKE: "&#128077;",
+        KIND_LOVE: "&#10084;&#65039;",
+        KIND_WOW: "&#128558;",
+        KIND_SAD: "&#128546;",
+        KIND_ANGRY: "&#128544;",
+        KIND_HAHA: "&#128514;",
     }
 
     REACTION_COLORS = {
@@ -37,7 +38,7 @@ class Reaction(models.Model):
         KIND_HAHA: "#f7b928",
     }
 
-    post = models.ForeignKey("posts.Post", on_delete=models.CASCADE, related_name="reactions")
+    post = models.ForeignKey("posts.Post", on_delete=models.CASCADE, related_name="reactions", blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reactions")
     comment = models.ForeignKey("interactions.Comment", on_delete=models.CASCADE, related_name="reactions", blank=True, null=True)
     kind = models.CharField(max_length=20, choices=KIND_CHOICES)
@@ -45,8 +46,23 @@ class Reaction(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["post", "user", "kind"], name="unique_post_user_reaction_kind"),
-            models.UniqueConstraint(fields=["comment", "user", "kind"], name="unique_comment_user_reaction_kind"),
+            models.CheckConstraint(
+                condition=(
+                    Q(post__isnull=False, comment__isnull=True)
+                    | Q(post__isnull=True, comment__isnull=False)
+                ),
+                name="reaction_has_exactly_one_target",
+            ),
+            models.UniqueConstraint(
+                fields=["post", "user"],
+                condition=Q(comment__isnull=True),
+                name="unique_post_user_reaction",
+            ),
+            models.UniqueConstraint(
+                fields=["comment", "user"],
+                condition=Q(comment__isnull=False),
+                name="unique_comment_user_reaction",
+            ),
         ]
 
 

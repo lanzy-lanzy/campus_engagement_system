@@ -2,7 +2,7 @@
   {% csrf_token %}
   <input type="hidden" name="parent" value="">
   <div class="flex-1 relative">
-    <input type="text" name="body" placeholder="Write a comment..." class="w-full bg-[#f0f2f5] rounded-full px-4 py-2 text-[15px] placeholder-[#65676b] focus:outline-none focus:ring-2 focus:ring-[#1877f2]/20 border border-transparent focus:border-[#1877f2] transition">
+    <input type="text" name="body" placeholder="Write a comment... Use @username to mention" class="w-full bg-[#f0f2f5] rounded-full px-4 py-2 text-[15px] placeholder-[#65676b] focus:outline-none focus:ring-2 focus:ring-[#1877f2]/20 border border-transparent focus:border-[#1877f2] transition" data-mentions>
   </div>
   <button type="submit" class="w-9 h-9 rounded-full bg-[#1877f2] flex items-center justify-center text-white hover:bg-[#166fe5] transition cursor-pointer flex-shrink-0">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>

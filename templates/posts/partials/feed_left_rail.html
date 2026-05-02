@@ -1,0 +1,35 @@
+<aside class="cv-feed-rail cv-feed-rail-left hidden lg:block">
+  <div class="cv-card cv-side-card">
+    <div class="flex items-center gap-3">
+      {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" class="cv-avatar" alt="">
+      {% else %}
+        <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ user.username|first|upper }}</div>
+      {% endif %}
+      <div class="min-w-0">
+        <p class="text-[15px] font-semibold text-[#050505] truncate">{{ user.get_full_name|default:user.username }}</p>
+        {% if user.department %}
+          <p class="text-[13px] text-[#65676b] truncate">{{ user.department }}</p>
+        {% else %}
+          <p class="text-[13px] text-[#65676b]">Campus member</p>
+        {% endif %}
+      </div>
+    </div>
+    <a href="{% url 'posts:create' %}" class="btn-fb btn-primary-fb w-full mt-4">Create post</a>
+  </div>
+
+  <nav class="cv-card cv-side-card" aria-label="Feed shortcuts">
+    <p class="cv-side-heading">Feed</p>
+    <a class="cv-side-link {% if sort == 'latest' %}active{% endif %}" href="?sort=latest{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category }}{% endif %}">Latest</a>
+    <a class="cv-side-link {% if sort == 'most_liked' %}active{% endif %}" href="?sort=most_liked{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category }}{% endif %}">Most Liked</a>
+    <a class="cv-side-link {% if sort == 'trending' %}active{% endif %}" href="?sort=trending{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category }}{% endif %}">Trending</a>
+  </nav>
+
+  <nav class="cv-card cv-side-card" aria-label="Categories">
+    <p class="cv-side-heading">Categories</p>
+    <a class="cv-side-link {% if not category %}active{% endif %}" href="?sort={{ sort }}{% if query %}&q={{ query }}{% endif %}">All Categories</a>
+    {% for cat_val, cat_label in categories %}
+      <a class="cv-side-link {% if category == cat_val %}active{% endif %}" href="?sort={{ sort }}{% if query %}&q={{ query }}{% endif %}&category={{ cat_val }}">{{ cat_label }}</a>
+    {% endfor %}
+  </nav>
+</aside>

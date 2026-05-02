@@ -1,4 +1,5 @@
 from django import template
+from django.utils.safestring import mark_safe
 from interactions.models import Reaction
 
 register = template.Library()
@@ -21,7 +22,7 @@ def reaction_counts(post):
 
 @register.filter
 def reaction_icon(kind):
-    return Reaction.REACTION_ICONS.get(kind, '👍')
+    return mark_safe(Reaction.REACTION_ICONS.get(kind, Reaction.REACTION_ICONS[Reaction.KIND_LIKE]))
 
 @register.filter
 def get_comment_reaction(comment, user):

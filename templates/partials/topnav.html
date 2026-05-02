@@ -30,6 +30,18 @@
       <a href="{% url 'posts:create' %}" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#f0f2f5] transition text-[#65676b] hover:text-[#42b72a]" title="Create Post">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
       </a>
+      <a href="{% url 'chat:inbox' %}" class="cv-nav-icon w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#f0f2f5] transition text-[#65676b] hover:text-[#1877f2]" title="Messenger">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.16 2 11.29c0 2.92 1.45 5.52 3.72 7.22V22l3.4-1.87c.91.25 1.88.39 2.88.39 5.52 0 10-4.16 10-9.29S17.52 2 12 2Zm1 12.5-2.55-2.72-5.02 2.72 5.52-5.86 2.61 2.72 4.96-2.72L13 14.5Z"/></svg>
+        {% if unread_message_count %}
+          <span class="cv-nav-badge" data-badge="messenger">{{ unread_message_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'notifications:inbox' %}" class="cv-nav-icon w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#f0f2f5] transition text-[#65676b] hover:text-[#1877f2]" title="Notifications">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2.7 2.7 0 0 0 2.62-2h-5.24A2.7 2.7 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5l-2 2v1h18v-1l-2-2Z"/></svg>
+        {% if unread_notification_count %}
+          <span class="cv-nav-badge" data-badge="notifications">{{ unread_notification_count }}</span>
+        {% endif %}
+      </a>
       {% if user.is_campus_admin %}
         <a href="{% url 'dashboard:index' %}" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#f0f2f5] transition text-[#65676b] hover:text-[#1877f2]" title="Dashboard">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>

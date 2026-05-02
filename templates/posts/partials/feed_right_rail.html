@@ -1,0 +1,52 @@
+<aside class="cv-feed-rail cv-feed-rail-right hidden xl:block">
+  <section class="cv-card cv-side-card">
+    <p class="cv-side-heading">Campus Activity</p>
+    <div class="cv-metric-grid">
+      <div>
+        <span class="cv-metric-value">{{ feed_sidebar.approved_post_count }}</span>
+        <span class="cv-metric-label">Posts</span>
+      </div>
+      <div>
+        <span class="cv-metric-value">{{ feed_sidebar.visible_comment_count }}</span>
+        <span class="cv-metric-label">Comments</span>
+      </div>
+      <div>
+        <span class="cv-metric-value">{{ feed_sidebar.post_reaction_count }}</span>
+        <span class="cv-metric-label">Reactions</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="cv-card cv-side-card">
+    <p class="cv-side-heading">Trending Now</p>
+    <div class="space-y-3">
+      {% for item in feed_sidebar.trending_posts %}
+        <a href="#post-{{ item.pk }}" class="cv-trending-item">
+          <span class="font-semibold text-[#050505] line-clamp-2">{{ item.title }}</span>
+          <span class="text-[12px] text-[#65676b]">{{ item.get_category_display }} - {{ item.reaction_count }} reaction{{ item.reaction_count|pluralize }} - {{ item.comment_count }} comment{{ item.comment_count|pluralize }}</span>
+        </a>
+      {% empty %}
+        <p class="text-[13px] text-[#65676b]">Campus activity will appear here as students post.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="cv-card cv-side-card">
+    <p class="cv-side-heading">Posting Guide</p>
+    <ul class="cv-guide-list">
+      <li>Keep it specific.</li>
+      <li>Respect other students.</li>
+      <li>Add a photo when it helps explain the issue.</li>
+    </ul>
+  </section>
+
+  <section class="cv-card cv-side-card">
+    <p class="cv-side-heading">Admin Status</p>
+    <div class="space-y-2 text-[13px] text-[#65676b]">
+      <p><span class="cv-status-dot bg-amber-500"></span>Under Review</p>
+      <p><span class="cv-status-dot bg-blue-500"></span>Planned</p>
+      <p><span class="cv-status-dot bg-indigo-500"></span>In Progress</p>
+      <p><span class="cv-status-dot bg-green-500"></span>Completed</p>
+    </div>
+  </section>
+</aside>

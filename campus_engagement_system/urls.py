@@ -8,6 +8,8 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("interactions/", include("interactions.urls")),
     path("dashboard/", include("dashboard.urls")),
+    path("chat/", include("chat.urls")),
+    path("notifications/", include("notifications.urls")),
     path("", include("posts.urls")),
 ]
 

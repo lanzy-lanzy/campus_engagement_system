@@ -1,8 +1,14 @@
+import shutil
+import tempfile
+
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Post
+from interactions.models import Comment, Reaction
+
+from .models import Post, PostAttachment
 
 
 class PostModelTests(TestCase):
@@ -25,6 +31,19 @@ class PostModelTests(TestCase):
 
 
 class PostViewTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._media_root = tempfile.mkdtemp()
+        cls._media_override = override_settings(MEDIA_ROOT=cls._media_root)
+        cls._media_override.enable()
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._media_override.disable()
+        shutil.rmtree(cls._media_root, ignore_errors=True)
+
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             username="student",
@@ -72,3 +91,237 @@ class PostViewTests(TestCase):
         response = self.client.get(reverse("posts:feed"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Post")
+
+    def test_feed_renders_inline_composer(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertContains(response, 'id="feed-composer"')
+        self.assertContains(response, 'hx-post="/posts/new/"')
+        self.assertContains(response, 'hx-encoding="multipart/form-data"')
+        self.assertContains(response, 'name="images"')
+        self.assertContains(response, "multiple")
+        self.assertContains(response, 'name="video"')
+
+    def test_htmx_create_post_accepts_up_to_five_images_and_one_video(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+        images = [
+            SimpleUploadedFile(f"campus-{index}.jpg", b"image-bytes", content_type="image/jpeg")
+            for index in range(5)
+        ]
+        video = SimpleUploadedFile("campus-tour.mp4", b"video-bytes", content_type="video/mp4")
+
+        response = self.client.post(
+            reverse("posts:create"),
+            {
+                "title": "Media rich update",
+                "description": "Here are several views from the event.",
+                "category": Post.CATEGORY_EVENT,
+                "images": images,
+                "video": video,
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        post = Post.objects.get(title="Media rich update")
+        self.assertEqual(post.attachments.filter(media_type=PostAttachment.TYPE_IMAGE).count(), 5)
+        self.assertEqual(post.attachments.filter(media_type=PostAttachment.TYPE_VIDEO).count(), 1)
+        self.assertContains(response, "cv-media-grid")
+        self.assertContains(response, "<video")
+
+    def test_create_post_rejects_more_than_five_images(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+        images = [
+            SimpleUploadedFile(f"campus-{index}.jpg", b"image-bytes", content_type="image/jpeg")
+            for index in range(6)
+        ]
+
+        response = self.client.post(
+            reverse("posts:create"),
+            {
+                "title": "Too many photos",
+                "description": "This should not save.",
+                "category": Post.CATEGORY_EVENT,
+                "images": images,
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Post.objects.filter(title="Too many photos").count(), 0)
+        self.assertContains(response, "Upload up to 5 images", status_code=400)
+
+    def test_htmx_create_post_stays_on_feed_and_prepends_post(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.post(
+            reverse("posts:create"),
+            {
+                "title": "Inline campus update",
+                "description": "This should appear without leaving the feed.",
+                "category": Post.CATEGORY_SUGGESTION,
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Post.objects.count(), 1)
+        self.assertEqual(response.headers["HX-Retarget"], "#post-list")
+        self.assertEqual(response.headers["HX-Reswap"], "afterbegin")
+        self.assertContains(response, "Inline campus update")
+        self.assertContains(response, 'hx-swap-oob="outerHTML"')
+
+    def test_feed_renders_share_action_for_posts(self):
+        post = Post.objects.create(
+            author=self.user,
+            title="Library hours",
+            description="Open earlier.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertContains(response, f'hx-get="{reverse("posts:share", args=[post.pk])}"')
+        self.assertContains(response, f'id="share-{post.pk}"')
+
+    def test_share_form_renders_for_htmx(self):
+        post = Post.objects.create(
+            author=self.user,
+            title="Library hours",
+            description="Open earlier.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:share", args=[post.pk]), HTTP_HX_REQUEST="true")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Share this post")
+        self.assertContains(response, 'name="caption"')
+        self.assertContains(response, post.title)
+
+    def test_htmx_share_post_creates_feed_story_with_original_preview(self):
+        original_author = get_user_model().objects.create_user(
+            username="origin",
+            email="origin@example.com",
+            password="StrongPass123",
+        )
+        original = Post.objects.create(
+            author=original_author,
+            title="Library hours",
+            description="Open earlier.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.post(
+            reverse("posts:share", args=[original.pk]),
+            {"caption": "This would help night classes too."},
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Post.objects.count(), 2)
+        shared_post = Post.objects.exclude(pk=original.pk).get()
+        self.assertEqual(shared_post.author, self.user)
+        self.assertEqual(shared_post.shared_from, original)
+        self.assertEqual(shared_post.description, "This would help night classes too.")
+        self.assertEqual(shared_post.category, original.category)
+        self.assertEqual(response.headers["HX-Retarget"], "#post-list")
+        self.assertEqual(response.headers["HX-Reswap"], "afterbegin")
+        self.assertContains(response, "shared a post")
+        self.assertContains(response, "This would help night classes too.")
+        self.assertContains(response, "Library hours")
+        self.assertContains(response, 'hx-swap-oob="outerHTML"')
+
+    def test_sharing_a_shared_post_reuses_original_source(self):
+        original_author = get_user_model().objects.create_user(
+            username="origin",
+            email="origin@example.com",
+            password="StrongPass123",
+        )
+        original = Post.objects.create(
+            author=original_author,
+            title="Library hours",
+            description="Open earlier.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        first_share = Post.objects.create(
+            author=self.user,
+            title="Shared: Library hours",
+            description="First share.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+            shared_from=original,
+        )
+        another_user = get_user_model().objects.create_user(
+            username="resharer",
+            email="resharer@example.com",
+            password="StrongPass123",
+        )
+        self.client.login(email="resharer@example.com", password="StrongPass123")
+
+        response = self.client.post(
+            reverse("posts:share", args=[first_share.pk]),
+            {"caption": "Sharing this again."},
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        new_share = Post.objects.exclude(pk__in=[original.pk, first_share.pk]).get()
+        self.assertEqual(new_share.shared_from, original)
+
+
+class FeedSidebarTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="student",
+            email="student@example.com",
+            password="StrongPass123",
+        )
+        self.post = Post.objects.create(
+            author=self.user,
+            title="Improve library lighting",
+            description="The second floor gets dim after 5 PM.",
+            category=Post.CATEGORY_IMPROVEMENT,
+        )
+        self.trending_post = Post.objects.create(
+            author=self.user,
+            title="Add more water stations",
+            description="The gym side needs refill stations.",
+            category=Post.CATEGORY_SUGGESTION,
+        )
+        Comment.objects.create(post=self.post, author=self.user, body="I agree.")
+        Reaction.objects.create(post=self.trending_post, user=self.user, kind=Reaction.KIND_LIKE)
+
+    def test_feed_context_includes_sidebar_metrics(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertEqual(response.status_code, 200)
+        sidebar = response.context["feed_sidebar"]
+        self.assertEqual(sidebar["approved_post_count"], 2)
+        self.assertEqual(sidebar["visible_comment_count"], 1)
+        self.assertEqual(sidebar["post_reaction_count"], 1)
+        self.assertEqual(list(sidebar["trending_posts"]), [self.trending_post, self.post])
+
+    def test_feed_renders_left_and_right_rail_content(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertContains(response, "cv-page-wide")
+        self.assertContains(response, "cv-feed-shell")
+        self.assertContains(response, "Feed shortcuts")
+        self.assertContains(response, "Campus Activity")
+        self.assertContains(response, "Trending Now")
+        self.assertContains(response, "Posting Guide")
+        self.assertContains(response, "Admin Status")

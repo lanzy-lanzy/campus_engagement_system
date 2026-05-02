@@ -1,9 +1,14 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+from django.db.models import Q
 
-from .forms import ProfileForm, StudentRegistrationForm
+from accounts.models import Friendship
+from accounts.forms import ProfileForm, StudentRegistrationForm
+from notifications.services import notify_friend_request, notify_friend_accepted
 
 
 def register(request):
@@ -38,3 +43,30 @@ def profile(request):
         form = ProfileForm(instance=request.user)
     posts = request.user.posts.order_by("-created_at")
     return render(request, "accounts/profile.html", {"form": form, "posts": posts})
+
+
+@login_required
+def request_friend(request, user_pk):
+    if request.method != "POST":
+        raise Http404
+    other_user = get_object_or_404(get_user_model(), pk=user_pk, is_active=True)
+    if other_user == request.user:
+        raise Http404
+    friendship = Friendship.request(request.user, other_user)
+    if friendship.status == Friendship.STATUS_PENDING and friendship.requester_id == request.user.pk:
+        notify_friend_request(request.user, other_user)
+    elif friendship.status == Friendship.STATUS_ACCEPTED and friendship.addressee_id == request.user.pk:
+        notify_friend_accepted(other_user, request.user)
+    return redirect(request.POST.get("next") or "chat:inbox")
+
+
+@login_required
+def search_friends(request):
+    query = request.GET.get("q", "").strip()
+    friends = set()
+    for fs in Friendship.objects.filter(Q(requester=request.user, status=Friendship.STATUS_ACCEPTED) | Q(addressee=request.user, status=Friendship.STATUS_ACCEPTED)):
+        friend = fs.addressee if fs.requester_id == request.user.pk else fs.requester
+        if not query or query.lower() in friend.username.lower():
+            friends.add(friend)
+    friends = sorted(friends, key=lambda u: u.username)[:10]
+    return JsonResponse([{"id": u.pk, "username": u.username} for u in friends], safe=False)
