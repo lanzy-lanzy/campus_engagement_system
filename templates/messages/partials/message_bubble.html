@@ -1,0 +1,7 @@
+{% load messages_extras %}
+<div class="flex {% if message.sender == current_user %}justify-end{% endif %}">
+  <div class="max-w-[70%] rounded-2xl px-4 py-2.5 {% if message.sender == current_user %}bg-gradient-to-r from-[#2C3E94] to-[#5DADE2] text-white{% else %}bg-slate-100 text-slate-800{% endif %}">
+    <p class="text-sm">{{ message.body }}</p>
+    <div class="text-xs {% if message.sender == current_user %}text-white/70{% else %}text-slate-500{% endif %} mt-1">{{ message.created_at|time:"H:i" }}</div>
+  </div>
+</div>

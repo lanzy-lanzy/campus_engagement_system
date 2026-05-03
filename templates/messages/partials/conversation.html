@@ -1,0 +1,34 @@
+<div class="flex flex-col h-full">
+  <div class="p-4 border-b border-slate-200 bg-gradient-to-r from-[#2C3E94] to-[#5DADE2] flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#2C3E94] font-bold">
+      {{ other_user.username|first|upper }}
+    </div>
+    <div class="text-white">
+      <div class="font-semibold">{{ other_user.get_full_name|default:other_user.username }}</div>
+      <div class="text-xs text-white/70">@{{ other_user.username }}</div>
+    </div>
+  </div>
+
+  <div id="messages-list" class="flex-1 overflow-y-auto p-4 space-y-4">
+    {% for msg in messages %}
+      <div class="flex {% if msg.sender == current_user %}justify-end{% endif %}">
+        <div class="max-w-[70%] rounded-2xl px-4 py-2.5 {% if msg.sender == current_user %}bg-gradient-to-r from-[#2C3E94] to-[#5DADE2] text-white{% else %}bg-slate-100 text-slate-800{% endif %}">
+          <p class="text-sm">{{ msg.body }}</p>
+          <div class="text-xs {% if msg.sender == current_user %}text-white/70{% else %}text-slate-500{% endif %} mt-1">{{ msg.created_at|time:"H:i" }}</div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center text-slate-400 text-sm py-8">No messages yet. Say hello!</div>
+    {% endfor %}
+  </div>
+
+  <div class="p-4 border-t border-slate-200">
+    <form hx-post="{% url 'messages:send' conversation.pk %}" hx-target="#messages-list" hx-swap="beforeend" hx-on::after-htmx-request="this.querySelector('input').value=''" class="flex gap-2">
+      {% csrf_token %}
+      <input type="text" name="body" placeholder="Type a message..." class="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:border-[#2C3E94]" required>
+      <button type="submit" class="rounded-xl bg-[#2C3E94] px-4 py-2.5 text-white hover:bg-[#1a2b6e] transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+      </button>
+    </form>
+  </div>
+</div>

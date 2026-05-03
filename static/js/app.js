@@ -218,6 +218,7 @@ window.previewPostReaction = function(el) {
 document.addEventListener('DOMContentLoaded', function() {
   initPulseScenes();
   initMentions();
+  initChatInput();
 });
 
 function initMentions() {
@@ -239,6 +240,7 @@ function initMentions() {
   // Also run on HTMX swap for dynamically loaded content
   document.body.addEventListener('htmx:afterSwap', function(evt) {
     document.querySelectorAll('[data-mentions]').forEach(initMentionField);
+    initChatInput();
     // Initialize Alpine.js for newly swapped-in fragments so x-data/x-show work
     try {
       if (window.Alpine && evt && evt.detail && evt.detail.target) {
@@ -529,6 +531,25 @@ function initPulseScenes() {
 
     if (prefersReducedMotion) {
       window.cancelAnimationFrame(frameId);
+    }
+  });
+}
+
+function initChatInput() {
+  const composer = document.getElementById('chat-composer');
+  if (!composer) return;
+
+  const input = composer.querySelector('textarea[name="body"], input[name="body"]');
+  if (!input) return;
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        return;
+      } else {
+        e.preventDefault();
+        composer.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      }
     }
   });
 }

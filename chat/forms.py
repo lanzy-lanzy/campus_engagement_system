@@ -12,8 +12,9 @@ class MessageForm(forms.ModelForm):
                 attrs={
                     "class": "cv-chat-input",
                     "placeholder": "Message...",
-                    "rows": 1,
+                    "rows": 2,
                     "aria-label": "Message",
+                    "onkeydown": "handleEnterKey(event)",
                 }
             )
         }

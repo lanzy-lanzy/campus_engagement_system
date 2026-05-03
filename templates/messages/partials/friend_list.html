@@ -1,0 +1,13 @@
+{% for friend in friends %}
+  <button class="w-full p-3 text-left border-b border-slate-100 hover:bg-sky-50 transition flex items-center gap-3" hx-get="{% url 'messages:start' friend.pk %}" hx-target="#conversation-area" hx-swap="innerHTML">
+    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-[#2C3E94] to-[#5DADE2] flex items-center justify-center text-white font-medium">
+      {{ friend.username|first|upper }}
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="font-medium text-slate-900 truncate">{{ friend.get_full_name|default:friend.username }}</div>
+      <div class="text-xs text-slate-500 truncate">{{ friend.email }}</div>
+    </div>
+  </button>
+{% empty %}
+  <div class="p-4 text-center text-slate-500 text-sm">No friends found</div>
+{% endfor %}

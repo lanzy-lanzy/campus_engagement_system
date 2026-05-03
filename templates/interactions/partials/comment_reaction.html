@@ -5,10 +5,12 @@
 <span id="comment-reactions-{{ comment.pk }}" class="flex items-center gap-1">
   {% for kind, count in comment_counts.items %}
     {% if count > 0 %}
-      <span class="text-sm">{{ kind|reaction_icon }}</span>
+      <span class="flex items-center gap-0.5 text-sm">
+        <span>{{ kind|reaction_icon }}</span>
+        <span class="text-[11px]">{{ count }}</span>
+      </span>
     {% endif %}
   {% endfor %}
-  <span class="text-[11px]">{{ comment_counts|total_reactions }}</span>
 </span>
 {% else %}
 <span id="comment-reactions-{{ comment.pk }}"></span>

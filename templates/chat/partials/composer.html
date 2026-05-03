@@ -14,3 +14,12 @@
   </button>
   {% for error in form.body.errors %}<p class="cv-chat-error">{{ error }}</p>{% endfor %}
 </form>
+
+<script>
+function handleEnterKey(event) {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    document.getElementById("chat-composer").requestSubmit();
+  }
+}
+</script>
