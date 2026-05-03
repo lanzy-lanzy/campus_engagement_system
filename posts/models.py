@@ -3,6 +3,17 @@ from django.db import models
 from django.urls import reverse
 
 
+class PostTag(models.Model):
+    name = models.SlugField(max_length=40, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("name",)
+
+    def __str__(self):
+        return f"#{self.name}"
+
+
 class Post(models.Model):
     CATEGORY_SUGGESTION = "suggestion"
     CATEGORY_COMPLAINT = "complaint"
@@ -48,6 +59,7 @@ class Post(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_APPROVED)
     admin_status = models.CharField(max_length=20, choices=ADMIN_STATUS_CHOICES, default=ADMIN_STATUS_NONE)
     shared_from = models.ForeignKey("self", on_delete=models.SET_NULL, related_name="shares", blank=True, null=True)
+    tags = models.ManyToManyField(PostTag, related_name="posts", blank=True)
     shared_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

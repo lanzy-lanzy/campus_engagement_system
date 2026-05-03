@@ -102,6 +102,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150)
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_STUDENT)
     student_id = models.CharField(max_length=40, blank=True)
     department = models.CharField(max_length=120, blank=True)
@@ -137,6 +139,13 @@ class User(AbstractBaseUser, PermissionsMixin):
             return True
         return permission_code in self.get_all_permissions()
 
+    def get_full_name(self):
+        full_name = f"{self.first_name} {self.last_name}".strip()
+        return full_name if full_name else self.username
+
+    def __str__(self):
+        return self.get_full_name()
+
 
 class Friendship(models.Model):
     STATUS_PENDING = "pending"
@@ -155,7 +164,7 @@ class Friendship(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(condition=~Q(requester=models.F("addressee")), name="friendship_no_self_request"),
+            models.CheckConstraint(check=~Q(requester=models.F("addressee")), name="friendship_no_self_request"),
             models.UniqueConstraint(fields=["requester", "addressee"], name="unique_friendship_direction"),
         ]
 

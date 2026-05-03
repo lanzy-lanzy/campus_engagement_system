@@ -1,37 +1,69 @@
 {% load interaction_tags notification_tags %}
-<div id="comments-{{ post.pk }}" class="space-y-3">
+<div id="{% if in_modal %}modal-comments-{{ post.pk }}{% else %}comments-{{ post.pk }}{% endif %}" class="space-y-3">
   {% for comment in comments %}
     {% if comment.status == "visible" and not comment.parent_id %}
-      <div class="flex items-start gap-2 group">
-        <div class="cv-avatar-placeholder w-8 h-8 text-xs bg-gradient-to-br from-[#65676b] to-[#8a8d91]">{{ comment.author.username|first|upper }}</div>
+      <div class="flex items-start gap-2 group" id="comment-{{ comment.pk }}">
+        {% if comment.author.avatar %}
+          <img src="{{ comment.author.avatar.url }}" alt="" class="w-8 h-8 rounded-full object-cover">
+        {% else %}
+          <div class="cv-avatar-placeholder w-8 h-8 text-xs bg-gradient-to-br from-[#65676b] to-[#8a8d91]">{{ comment.author.get_full_name|default:comment.author.username|first|upper }}</div>
+        {% endif %}
         <div class="flex-1 min-w-0">
-          <div class="inline-block bg-[#f0f2f5] rounded-2xl px-3 py-2 max-w-full">
-            <span class="font-semibold text-[13px] text-[#050505]">{{ comment.author.username }}</span>
-            <p class="text-[15px] text-[#1c1e21] leading-snug">{{ comment.body|mentionize:comment }}</p>
+          <div class="flex items-center gap-1">
+            <div class="inline-block bg-[#f0f2f5] rounded-2xl px-3 py-2 max-w-full">
+              <span class="font-semibold text-[13px] text-[#050505]">{{ comment.author.get_full_name|default:comment.author.username }}</span>
+              <p class="text-[15px] text-[#1c1e21] leading-snug">{{ comment.body|mentionize:comment }}</p>
+            </div>
+            {% if comment.author == user or user.is_campus_admin %}
+              <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button type="button" class="cv-comment-menu-button" aria-label="Comment options" @click="open = !open">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="16" cy="10" r="1.5"/></svg>
+                </button>
+                <div x-show="open" x-transition class="cv-dropdown cv-comment-dropdown left-0 right-auto min-w-[180px]" x-cloak>
+                  <button type="button" hx-get="{% url 'interactions:edit_comment' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-target="#comment-{{ comment.pk }}" hx-swap="outerHTML">Edit</button>
+                  <form method="post" action="{% url 'interactions:delete_comment' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-post="{% url 'interactions:delete_comment' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-comments{% else %}comments{% endif %}-{{ post.pk }}" hx-swap="outerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="text-red-600">Delete</button>
+                  </form>
+                </div>
+              </div>
+            {% endif %}
           </div>
-          {% include "interactions/partials/comment_actions.html" with comment=comment post=post %}
+          {% include "interactions/partials/comment_actions.html" with comment=comment post=post in_modal=in_modal %}
           <div id="reply-form-{{ comment.pk }}"></div>
           {% with replies=comment.replies.all %}
           {% if replies.exists %}
             <div class="mt-2 ml-4 space-y-2 border-l-2 border-[#ced0d4] pl-3">
               {% for reply in replies %}
                 {% if reply.status == "visible" %}
-                  <div class="flex items-start gap-2">
-                    <div class="cv-avatar-placeholder w-6 h-6 text-[10px] bg-gradient-to-br from-[#65676b] to-[#8a8d91]">{{ reply.author.username|first|upper }}</div>
+                  <div class="flex items-start gap-2" id="comment-{{ reply.pk }}">
+                    {% if reply.author.avatar %}
+                      <img src="{{ reply.author.avatar.url }}" alt="" class="w-6 h-6 rounded-full object-cover">
+                    {% else %}
+                      <div class="cv-avatar-placeholder w-6 h-6 text-[10px] bg-gradient-to-br from-[#65676b] to-[#8a8d91]">{{ reply.author.get_full_name|default:reply.author.username|first|upper }}</div>
+                    {% endif %}
                     <div class="flex-1 min-w-0">
-                      <div class="inline-block bg-[#f0f2f5] rounded-2xl px-2 py-1 max-w-full">
-                        <span class="font-semibold text-[12px] text-[#050505]">{{ reply.author.username }}</span>
-                        <p class="text-[14px] text-[#1c1e21] leading-snug">{{ reply.body|mentionize:reply }}</p>
-                      </div>
-                      <div class="flex items-center gap-2 mt-0.5 ml-2 text-[11px] text-[#65676b]">
-                        <span>{{ reply.created_at|timesince }} ago</span>
+                      <div class="flex items-center gap-1">
+                        <div class="inline-block bg-[#f0f2f5] rounded-2xl px-2 py-1 max-w-full">
+                          <span class="font-semibold text-[12px] text-[#050505]">{{ reply.author.get_full_name|default:reply.author.username }}</span>
+                          <p class="text-[14px] text-[#1c1e21] leading-snug">{{ reply.body|mentionize:reply }}</p>
+                        </div>
                         {% if reply.author == user or user.is_campus_admin %}
-                          <form method="post" action="{% url 'interactions:delete_comment' reply.pk %}" hx-post="{% url 'interactions:delete_comment' reply.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="text-red-500 hover:text-red-700 hover:underline cursor-pointer font-medium">Delete</button>
-                          </form>
+                          <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                            <button type="button" class="cv-comment-menu-button" aria-label="Comment options" @click="open = !open">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="16" cy="10" r="1.5"/></svg>
+                            </button>
+                            <div x-show="open" x-transition class="cv-dropdown cv-comment-dropdown left-0 right-auto min-w-[180px]" x-cloak>
+                              <button type="button" hx-get="{% url 'interactions:edit_comment' reply.pk %}{% if in_modal %}?modal=1{% endif %}" hx-target="#comment-{{ reply.pk }}" hx-swap="outerHTML">Edit</button>
+                              <form method="post" action="{% url 'interactions:delete_comment' reply.pk %}{% if in_modal %}?modal=1{% endif %}" hx-post="{% url 'interactions:delete_comment' reply.pk %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-comments{% else %}comments{% endif %}-{{ post.pk }}" hx-swap="outerHTML">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-600">Delete</button>
+                              </form>
+                            </div>
+                          </div>
                         {% endif %}
                       </div>
+                      {% include "interactions/partials/comment_actions.html" with comment=reply post=post in_modal=in_modal %}
                     </div>
                   </div>
                 {% endif %}
@@ -43,5 +75,5 @@
       </div>
     {% endif %}
   {% endfor %}
-  {% include "interactions/partials/comment_form.html" %}
+  {% include "interactions/partials/comment_form.html" with in_modal=in_modal %}
 </div>

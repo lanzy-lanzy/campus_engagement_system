@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Profile - Campus Voice{% endblock %}
+{% block title %}Profile - PulseCampus{% endblock %}
 {% block content %}
 <!-- Profile cover + info -->
 <div class="cv-card overflow-hidden animate-fade-in mb-4">
@@ -12,7 +12,7 @@
         <img src="{{ user.avatar.url }}" class="w-[136px] h-[136px] rounded-full border-4 border-white object-cover shadow-lg">
       {% else %}
         <div class="w-[136px] h-[136px] rounded-full bg-gradient-to-br from-[#1877f2] to-[#42b72a] flex items-center justify-center text-white text-5xl font-bold border-4 border-white shadow-lg">
-          {{ user.username|first|upper }}
+          {{ user.get_full_name|default:user.username|first|upper }}
         </div>
       {% endif %}
       <div class="flex-1 pb-2">

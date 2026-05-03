@@ -31,6 +31,9 @@ class Conversation(models.Model):
     def last_message(self):
         return self.messages.order_by("-created_at").first()
 
+    def last_message_for(self, user):
+        return self.messages.exclude(deleted_for=user).exclude(deleted_for_everyone=True).order_by("-created_at").first()
+
     def touch(self):
         self.updated_at = timezone.now()
         self.save(update_fields=["updated_at"])
@@ -42,6 +45,8 @@ class Message(models.Model):
     body = models.TextField(max_length=1000)
     read_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    deleted_for_everyone = models.BooleanField(default=False)
+    deleted_for = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="deleted_messages", blank=True)
 
     class Meta:
         ordering = ("created_at", "id")
@@ -53,3 +58,13 @@ class Message(models.Model):
         if not self.read_at:
             self.read_at = timezone.now()
             self.save(update_fields=["read_at"])
+
+    def is_deleted_for(self, user):
+        if self.deleted_for_everyone:
+            return True
+        return self.deleted_for.filter(pk=user.pk).exists()
+
+    def can_delete_for_everyone(self, user):
+        from django.utils import timezone
+        from datetime import timedelta
+        return self.sender == user and (timezone.now() - self.created_at) < timedelta(minutes=10)

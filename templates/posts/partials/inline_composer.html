@@ -4,9 +4,9 @@
       {% if user.avatar %}
         <img src="{{ user.avatar.url }}" class="cv-avatar" alt="">
       {% else %}
-        <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ user.username|first|upper }}</div>
+        <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ user.get_full_name|default:user.username|first|upper }}</div>
       {% endif %}
-      <span class="flex-1 bg-[#f0f2f5] rounded-full px-4 py-2.5 text-[#65676b] text-[15px] hover:bg-[#e4e6eb] transition">What's on your mind, {{ user.username }}?</span>
+      <span class="flex-1 bg-[#f0f2f5] rounded-full px-4 py-2.5 text-[#65676b] text-[15px] hover:bg-[#e4e6eb] transition">What's on your mind, {{ user.get_full_name|default:user.username }}?</span>
     </button>
 
     <form method="post"
@@ -22,13 +22,13 @@
       {% csrf_token %}
       <div>
         <label for="{{ form.title.id_for_label }}" class="sr-only">Title</label>
-        <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" class="cv-input" placeholder="Post title">
+        <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" class="cv-input" placeholder="Post title" data-mentions>
         {% for error in form.title.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
       </div>
 
       <div>
         <label for="{{ form.description.id_for_label }}" class="sr-only">Description</label>
-        <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="4" class="cv-input resize-none" placeholder="Share the details...">{{ form.description.value|default:'' }}</textarea>
+        <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="4" class="cv-input resize-none" placeholder="Share the details..." data-mentions>{{ form.description.value|default:'' }}</textarea>
         {% for error in form.description.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
       </div>
 
@@ -47,6 +47,12 @@
           <input type="file" name="images" id="id_images" accept="image/*" multiple class="cv-file-input">
           <p class="mt-1 text-[12px] text-[#65676b]">Up to 5 images</p>
         </div>
+      </div>
+
+      <div>
+        <label for="{{ form.tags.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1">Tags</label>
+        <input type="text" name="{{ form.tags.name }}" id="{{ form.tags.id_for_label }}" value="{{ form.tags.value|default:'' }}" class="cv-input" placeholder="safety, library-hours, campus-life">
+        {% for error in form.tags.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
       </div>
 
       <div>

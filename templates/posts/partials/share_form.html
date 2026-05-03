@@ -20,7 +20,7 @@
 
     <div class="cv-shared-preview mt-3">
       <div class="flex items-center gap-2 text-[13px] text-[#65676b]">
-        <div class="cv-avatar-placeholder w-8 h-8 text-xs bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ source.author.username|first|upper }}</div>
+        <div class="cv-avatar-placeholder w-8 h-8 text-xs bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ source.author.get_full_name|default:source.author.username|first|upper }}</div>
         <div class="min-w-0">
           <p class="font-semibold text-[#050505] truncate">{{ source.author.get_full_name|default:source.author.username }}</p>
           <p>{{ source.created_at|timesince }} ago · {{ source.get_category_display }}</p>

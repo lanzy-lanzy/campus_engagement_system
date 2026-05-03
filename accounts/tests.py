@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.models import Friendship
+
 
 class UserModelTests(TestCase):
     def test_student_user_defaults_to_student_role(self):
@@ -27,6 +29,15 @@ class UserModelTests(TestCase):
 
 
 class AuthFlowTests(TestCase):
+    def test_register_renders_pulsecampus_branding(self):
+        response = self.client.get(reverse("accounts:register"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "PulseCampus")
+        self.assertContains(response, "Turn student voices into campus action.")
+        self.assertContains(response, 'data-pulse-scene')
+        self.assertContains(response, "Create your student account")
+
     def test_admin_login_redirects_to_dashboard(self):
         user = get_user_model().objects.create_user(
             username="admin1",
@@ -41,3 +52,41 @@ class AuthFlowTests(TestCase):
         response = self.client.get(reverse("accounts:post_login_redirect"))
 
         self.assertRedirects(response, reverse("dashboard:index"))
+
+
+class FriendSearchTests(TestCase):
+    def test_friend_search_returns_custom_user_display_data(self):
+        User = get_user_model()
+        student = User.objects.create_user(
+            username="student",
+            email="student@example.com",
+            password="StrongPass123",
+        )
+        friend = User.objects.create_user(
+            username="lanzy",
+            email="lanzy@example.com",
+            password="StrongPass123",
+            department="Engineering",
+        )
+        Friendship.objects.create(
+            requester=student,
+            addressee=friend,
+            status=Friendship.STATUS_ACCEPTED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("accounts:search_friends"), {"q": "lanzy"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            [
+                {
+                    "id": friend.pk,
+                    "username": "lanzy",
+                    "display_name": "lanzy",
+                    "department": "Engineering",
+                    "avatar_url": "",
+                }
+            ],
+        )

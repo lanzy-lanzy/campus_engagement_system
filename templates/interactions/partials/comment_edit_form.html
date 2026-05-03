@@ -1,0 +1,42 @@
+<div id="comment-{{ comment.pk }}" class="flex items-start gap-2">
+  {% if comment.author.avatar %}
+    <img src="{{ comment.author.avatar.url }}" alt="" class="w-8 h-8 rounded-full object-cover">
+  {% else %}
+    <div class="cv-avatar-placeholder w-8 h-8 text-xs bg-gradient-to-br from-[#65676b] to-[#8a8d91]">{{ comment.author.get_full_name|default:comment.author.username|first|upper }}</div>
+  {% endif %}
+  <form method="post" action="{% url 'interactions:edit_comment' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-post="{% url 'interactions:edit_comment' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-comments{% else %}comments{% endif %}-{{ post.pk }}" hx-swap="outerHTML" class="flex-1 min-w-0">
+    {% csrf_token %}
+    <div class="relative" x-data="mentionComposer('{{ comment.body|escapejs }}')" x-init="init($refs.editor, $refs.body)">
+      <input type="hidden" name="body" x-ref="body" value="{{ comment.body }}">
+      <div
+        x-ref="editor"
+        data-mention-editor
+        contenteditable="true"
+        role="textbox"
+        aria-label="Edit comment"
+        data-placeholder="Edit comment"
+        class="cv-mention-editor cv-comment-mention-editor"
+        @input="onInput"
+        @keydown="onKeydown"
+        @blur="onBlur"></div>
+      <div x-show="open" x-cloak class="mention-dropdown mention-dropdown-up">
+        <template x-for="(friend, index) in friends" :key="friend.id">
+          <button type="button" class="mention-item w-full text-left" :class="{ 'is-active': index === activeIndex }" @mousedown.prevent="selectFriend(index)">
+            <span class="mention-item-avatar">
+              <template x-if="friend.avatar_url"><img :src="friend.avatar_url" alt=""></template>
+              <template x-if="!friend.avatar_url"><span x-text="initialFor(friend)"></span></template>
+            </span>
+            <span class="min-w-0">
+              <span class="mention-item-name" x-text="friend.display_name || friend.username"></span>
+              <span class="mention-item-meta" x-text="friend.department || ('@' + friend.username)"></span>
+            </span>
+          </button>
+        </template>
+      </div>
+    </div>
+    <div class="mt-1 ml-2 flex items-center gap-2">
+      <button type="submit" class="text-[12px] font-semibold text-[#1877f2] hover:underline">Save</button>
+      <button type="button" class="text-[12px] font-semibold text-[#65676b] hover:underline" hx-get="{% url 'posts:modal' post.pk %}" hx-target="#post-modal-root" hx-swap="innerHTML">Cancel</button>
+    </div>
+  </form>
+</div>

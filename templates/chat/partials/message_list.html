@@ -1,14 +1,52 @@
+{% load chat_tags %}
 <div id="chat-messages" class="cv-chat-messages">
   {% for message in messages %}
-    <div class="cv-chat-message-row {% if message.sender == user %}outgoing{% else %}incoming{% endif %}">
-      {% if message.sender != user %}
-        <span class="cv-chat-bubble-avatar">{{ message.sender.username|first|upper }}</span>
-      {% endif %}
-      <div class="cv-chat-bubble-wrap">
-        <div class="cv-chat-bubble">{{ message.body|linebreaksbr }}</div>
-        <div class="cv-chat-time">{{ message.created_at|time:"g:i A" }}</div>
+    {% if not message|message_deleted:user %}
+      <div class="cv-chat-message-row {% if message.sender == user %}outgoing{% else %}incoming{% endif %}"
+           x-data="{ showMenu: false }"
+           @click.outside="showMenu = false">
+        {% if message.sender != user %}
+          {% if message.sender.avatar %}
+            <img src="{{ message.sender.avatar.url }}" alt="" class="cv-chat-bubble-avatar">
+          {% else %}
+            <span class="cv-chat-bubble-avatar">{{ message.sender.get_full_name|default:message.sender.username|first|upper }}</span>
+          {% endif %}
+        {% endif %}
+        <div class="cv-chat-bubble-wrap">
+          {% if message.deleted_for_everyone %}
+            <div class="cv-chat-bubble deleted-message">
+              <span class="text-[#65676b] italic">This message was deleted</span>
+            </div>
+          {% else %}
+            <div class="cv-chat-bubble">{{ message.body|linebreaksbr }}</div>
+          {% endif %}
+          <div class="cv-chat-time-row">
+            <span class="cv-chat-time">{{ message.created_at|time:"g:i A" }}</span>
+            <button type="button" class="cv-chat-delete-btn" @click.stop="showMenu = !showMenu">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+            </button>
+            <div x-show="showMenu" x-cloak class="cv-chat-delete-menu">
+              <button type="button" class="cv-chat-delete-option"
+                hx-post="{% url 'chat:delete_message' message.pk 'me' %}"
+                hx-target="#chat-messages"
+                hx-swap="innerHTML"
+                hx-on::after-request="if (event.detail.successful) { window.location.href = window.location.href }">
+                Delete for me
+              </button>
+              {% if message.sender == user and not message.deleted_for_everyone and message|can_delete_everyone:user %}
+                <button type="button" class="cv-chat-delete-option text-red-600"
+                  hx-post="{% url 'chat:delete_message' message.pk 'everyone' %}"
+                  hx-target="#chat-messages"
+                  hx-swap="innerHTML"
+                  hx-on::after-request="if (event.detail.successful) { window.location.href = window.location.href }">
+                  Delete for everyone
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    {% endif %}
   {% empty %}
     <div class="cv-chat-thread-empty">No messages yet. Say hello.</div>
   {% endfor %}

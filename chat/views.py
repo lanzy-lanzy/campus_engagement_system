@@ -12,12 +12,12 @@ from .models import Conversation, Message
 
 
 def _conversation_queryset(user):
-    return (
+    conversations = (
         Conversation.objects.filter(participants=user)
         .prefetch_related("participants", "messages__sender")
-        .annotate(last_message_at=Max("messages__created_at"))
-        .order_by("-last_message_at", "-updated_at")
+        .order_by("-updated_at")
     )
+    return conversations
 
 
 def _people_queryset(user, query=""):
@@ -34,7 +34,7 @@ def _chat_context(request, active_conversation=None, form=None):
         {
             "conversation": conversation,
             "person": conversation.other_participant(request.user),
-            "last_message": conversation.last_message,
+            "last_message": conversation.last_message_for(request.user),
             "unread_count": conversation.messages.filter(read_at__isnull=True).exclude(sender=request.user).count(),
         }
         for conversation in conversations
@@ -53,9 +53,10 @@ def _chat_context(request, active_conversation=None, form=None):
         "people": people,
         "active_conversation": active_conversation,
         "active_person": active_conversation.other_participant(request.user) if active_conversation else None,
-        "messages": active_conversation.messages.select_related("sender") if active_conversation else [],
+        "messages": active_conversation.messages.select_related("sender").exclude(deleted_for=request.user).exclude(deleted_for_everyone=True) if active_conversation else [],
         "form": form or MessageForm(),
         "query": query,
+        "user": request.user,
     }
 
 
@@ -105,16 +106,49 @@ def send_message(request, pk):
         form = MessageForm()
 
     if request.headers.get("HX-Request"):
+        messages = conversation.messages.select_related("sender").exclude(deleted_for=request.user).exclude(deleted_for_everyone=True)
         messages_html = render_to_string(
             "chat/partials/message_list.html",
-            {"active_conversation": conversation, "messages": conversation.messages.select_related("sender")},
+            {"active_conversation": conversation, "messages": messages, "user": request.user},
             request=request,
         )
         composer_html = render_to_string(
             "chat/partials/composer.html",
-            {"active_conversation": conversation, "form": form, "oob": True},
+            {"active_conversation": conversation, "form": form, "oob": True, "user": request.user},
             request=request,
         )
         return HttpResponse(messages_html + composer_html)
 
     return redirect("chat:conversation", pk=conversation.pk)
+
+
+@login_required
+def delete_message(request, pk, action):
+    from datetime import timedelta
+    message = get_object_or_404(
+        Message.objects.filter(conversation__participants=request.user),
+        pk=pk,
+    )
+
+    if action == "me":
+        message.deleted_for.add(request.user)
+    elif action == "everyone":
+        if message.sender == request.user and (timezone.now() - message.created_at) < timedelta(minutes=10):
+            message.deleted_for_everyone = True
+            message.body = ""
+            message.save()
+
+    message.conversation.updated_at = timezone.now()
+    message.conversation.save(update_fields=["updated_at"])
+    conversation_pk = message.conversation.pk
+
+    if request.headers.get("HX-Request"):
+        messages = Message.objects.filter(conversation=message.conversation).select_related("sender").exclude(deleted_for=request.user).exclude(deleted_for_everyone=True)
+        messages_html = render_to_string(
+            "chat/partials/message_list.html",
+            {"active_conversation": message.conversation, "messages": messages, "user": request.user},
+            request=request,
+        )
+        return HttpResponse(messages_html)
+
+    return redirect("chat:conversation", pk=conversation_pk)

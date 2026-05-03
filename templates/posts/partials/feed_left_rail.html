@@ -4,7 +4,7 @@
       {% if user.avatar %}
         <img src="{{ user.avatar.url }}" class="cv-avatar" alt="">
       {% else %}
-        <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ user.username|first|upper }}</div>
+        <div class="cv-avatar-placeholder bg-gradient-to-br from-[#1877f2] to-[#42b72a]">{{ user.get_full_name|default:user.username|first|upper }}</div>
       {% endif %}
       <div class="min-w-0">
         <p class="text-[15px] font-semibold text-[#050505] truncate">{{ user.get_full_name|default:user.username }}</p>
@@ -15,7 +15,10 @@
         {% endif %}
       </div>
     </div>
-    <a href="{% url 'posts:create' %}" class="btn-fb btn-primary-fb w-full mt-4">Create post</a>
+    <button type="button" class="btn-fb btn-primary-fb w-full mt-4"
+        hx-get="{% url 'posts:create_modal' %}"
+        hx-target="#create-post-modal-root"
+        hx-swap="innerHTML">Create post</button>
   </div>
 
   <nav class="cv-card cv-side-card" aria-label="Feed shortcuts">

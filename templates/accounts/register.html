@@ -1,27 +1,30 @@
 {% extends "base_auth.html" %}
-{% block title %}Register - Campus Voice{% endblock %}
+{% block title %}Register - PulseCampus{% endblock %}
 {% block content %}
-<div class="cv-card p-5 animate-scale-in">
-  <h2 class="text-2xl font-bold text-[#1c1e21] text-center">Create a new account</h2>
-  <p class="text-[#606770] text-center text-[15px] mt-1 mb-4">It's quick and easy.</p>
-  <hr class="cv-divider mb-4">
-  <form method="post" class="space-y-3">
+<div class="pc-auth-card animate-scale-in">
+  <div class="pc-auth-card-head">
+    <span class="pc-form-badge">Student access</span>
+    <h2>Create your student account</h2>
+    <p>Join PulseCampus and help turn student voices into campus action.</p>
+  </div>
+  <form method="post" class="pc-form-grid">
     {% csrf_token %}
     {% for field in form %}
-      <div>
-        <input type="{% if field.name == 'password' or field.name == 'password1' or field.name == 'password2' %}password{% elif field.name == 'email' %}email{% else %}text{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" placeholder="{{ field.label }}" class="cv-input" {% if field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}>
+      <div class="pc-field {% if field.name == 'email' or field.name == 'username' %}sm:col-span-1{% else %}sm:col-span-2{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        <input type="{% if field.name == 'password' or field.name == 'password1' or field.name == 'password2' %}password{% elif field.name == 'email' %}email{% else %}text{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" placeholder="{{ field.label }}" class="cv-input pc-input" {% if field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}>
         {% if field.help_text %}
-          <p id="{{ field.id_for_label }}-help" class="mt-1 text-[12px] text-[#65676b]">{{ field.help_text }}</p>
+          <div id="{{ field.id_for_label }}-help" class="pc-help">{{ field.help_text }}</div>
         {% endif %}
         {% if field.errors %}
           {% for error in field.errors %}
-            <p class="mt-1 text-[13px] text-red-600">{{ error }}</p>
+            <p class="pc-error">{{ error }}</p>
           {% endfor %}
         {% endif %}
       </div>
     {% endfor %}
-    <button type="submit" class="btn-fb btn-success-fb w-full text-lg py-3 cursor-pointer">Sign Up</button>
+    <button type="submit" class="pc-primary-button pc-submit-button sm:col-span-2">Create account</button>
   </form>
-  <p class="mt-5 text-center text-[14px] text-[#65676b]">Already have an account? <a class="text-[#1877f2] hover:underline font-medium" href="{% url 'accounts:login' %}">Log in</a></p>
+  <p class="pc-auth-switch">Already have an account? <a href="{% url 'accounts:login' %}">Log in</a></p>
 </div>
 {% endblock %}

@@ -1,0 +1,88 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PulseCampus turns student voices into campus action.">
+  <title>PulseCampus</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="min-h-screen bg-[#f7fbff] text-[#101828] font-['Inter',system-ui,sans-serif]">
+  <main class="pc-landing">
+    <nav class="pc-landing-nav" aria-label="Public navigation">
+      <a href="{% url 'posts:feed' %}" class="pc-brand-lockup" aria-label="PulseCampus home">
+        <span class="pc-logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <circle cx="24" cy="24" r="22"></circle>
+            <path d="M14 17.5h20a5 5 0 0 1 5 5v5.2a5 5 0 0 1-5 5H24l-7.8 5v-5H14a5 5 0 0 1-5-5v-5.2a5 5 0 0 1 5-5Z"></path>
+            <path d="M15 25h5l2.2-4.5 4 9 3-6H36"></path>
+          </svg>
+        </span>
+        <span>PulseCampus</span>
+      </a>
+      <div class="pc-nav-actions">
+        <a href="{% url 'accounts:login' %}" class="pc-link-button">Log in</a>
+        <a href="{% url 'accounts:register' %}" class="pc-primary-button">Join now</a>
+      </div>
+    </nav>
+
+    <section class="pc-hero">
+      <div class="pc-hero-copy">
+        <p class="pc-kicker">Student feedback, made visible</p>
+        <h1>PulseCampus</h1>
+        <p class="pc-tagline">Turn student voices into campus action.</p>
+        <p class="pc-hero-text">Share ideas, raise concerns, react to what matters, and help campus leaders see what students need next.</p>
+        <div class="pc-hero-actions">
+          <a href="{% url 'accounts:register' %}" class="pc-primary-button pc-large-button">Create your account</a>
+          <a href="{% url 'accounts:login' %}" class="pc-secondary-button pc-large-button">Log in</a>
+        </div>
+        <dl class="pc-proof-grid" aria-label="PulseCampus features">
+          <div><dt>Ideas</dt><dd>Post suggestions</dd></div>
+          <div><dt>Reactions</dt><dd>Signal support</dd></div>
+          <div><dt>Action</dt><dd>Track updates</dd></div>
+        </dl>
+      </div>
+
+      <div class="pc-hero-visual" aria-hidden="true">
+        <div class="pc-scene-frame">
+          <div class="pc-scene" data-pulse-scene data-scene-variant="landing"></div>
+          <div class="pc-floating-card pc-card-one">
+            <span>Suggestion</span>
+            <strong>More quiet study spaces</strong>
+          </div>
+          <div class="pc-floating-card pc-card-two">
+            <span>Trending</span>
+            <strong>Safer evening paths</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pc-next-band" aria-label="How PulseCampus helps">
+      <div>
+        <span class="pc-mini-icon">01</span>
+        <h2>Raise the signal</h2>
+        <p>Every post gives students a clear place to be heard and understood.</p>
+      </div>
+      <div>
+        <span class="pc-mini-icon">02</span>
+        <h2>Build momentum</h2>
+        <p>Likes, hearts, comments, and trends show which needs matter most.</p>
+      </div>
+      <div>
+        <span class="pc-mini-icon">03</span>
+        <h2>Close the loop</h2>
+        <p>Admins can moderate, measure, and act on campus-wide feedback.</p>
+      </div>
+    </section>
+  </main>
+  <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

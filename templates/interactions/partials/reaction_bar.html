@@ -1,11 +1,14 @@
 {% load interaction_tags %}
 {% with user_reaction=post|user_reaction:user %}
-<div id="reactions-{{ post.pk }}"
+<div id="{% if in_modal %}modal-reactions-{{ post.pk }}{% else %}reactions-{{ post.pk }}{% endif %}"
      class="space-y-1"
      data-current-reaction="{{ user_reaction|default:'' }}"
+     {% if force_oob %}hx-swap-oob="outerHTML"{% endif %}
+     {% if not in_modal %}
      hx-get="{% url 'interactions:get_reaction_bar' post.pk %}"
      hx-trigger="every 30s"
-     hx-swap="outerHTML">
+     hx-swap="outerHTML"
+     {% endif %}>
   <div class="flex items-center">
     <div class="relative flex-1"
          x-data="{ showPicker: false, holdTimer: null, hideTimer: null, wasLongPress: false }"
@@ -19,7 +22,7 @@
         @mouseup="clearTimeout(holdTimer)"
         @touchstart="wasLongPress = false; holdTimer = setTimeout(() => { showPicker = true; wasLongPress = true; }, 400)"
         @touchend="clearTimeout(holdTimer)"
-        @click="if (!wasLongPress && !showPicker) { htmx.ajax('POST', '{% url 'interactions:toggle_reaction' post.pk user_reaction|default:'like' %}', {target: '#reactions-{{ post.pk }}', swap: 'outerHTML', source: $el}) }"
+        @click="if (!wasLongPress && !showPicker) { htmx.ajax('POST', '{% url 'interactions:toggle_reaction' post.pk user_reaction|default:'like' %}{% if in_modal %}?modal=1{% endif %}', {target: '#{% if in_modal %}modal-reactions{% else %}reactions{% endif %}-{{ post.pk }}', swap: 'outerHTML', source: $el}) }"
         @mouseenter="clearTimeout(hideTimer); holdTimer = setTimeout(() => { showPicker = true; }, 250)">
         {% if user_reaction %}
           <span class="cv-reaction-glyph" aria-hidden="true">{{ user_reaction|reaction_icon }}</span>
@@ -40,13 +43,19 @@
         @mouseenter="clearTimeout(hideTimer)"
         @mouseleave="hideTimer = setTimeout(() => { showPicker = false; wasLongPress = false; }, 220)"
         x-cloak>
-        <button type="button" class="reaction-btn" title="Like" aria-label="Like" hx-post="{% url 'interactions:toggle_reaction' post.pk 'like' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "like"|reaction_icon }}</button>
-        <button type="button" class="reaction-btn" title="Love" aria-label="Love" hx-post="{% url 'interactions:toggle_reaction' post.pk 'love' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "love"|reaction_icon }}</button>
-        <button type="button" class="reaction-btn" title="Wow" aria-label="Wow" hx-post="{% url 'interactions:toggle_reaction' post.pk 'wow' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "wow"|reaction_icon }}</button>
-        <button type="button" class="reaction-btn" title="Sad" aria-label="Sad" hx-post="{% url 'interactions:toggle_reaction' post.pk 'sad' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "sad"|reaction_icon }}</button>
-        <button type="button" class="reaction-btn" title="Angry" aria-label="Angry" hx-post="{% url 'interactions:toggle_reaction' post.pk 'angry' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "angry"|reaction_icon }}</button>
-        <button type="button" class="reaction-btn" title="Haha" aria-label="Haha" hx-post="{% url 'interactions:toggle_reaction' post.pk 'haha' %}" hx-target="#reactions-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "haha"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn" title="Like" aria-label="Like" hx-post="{% url 'interactions:toggle_reaction' post.pk 'like' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-reactions{% else %}reactions{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "like"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn" title="Love" aria-label="Love" hx-post="{% url 'interactions:toggle_reaction' post.pk 'love' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-reactions{% else %}reactions{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "love"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn" title="Wow" aria-label="Wow" hx-post="{% url 'interactions:toggle_reaction' post.pk 'wow' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-reactions{% else %}reactions{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "wow"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn" title="Sad" aria-label="Sad" hx-post="{% url 'interactions:toggle_reaction' post.pk 'sad' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-reactions{% else %}reactions{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "sad"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn" title="Angry" aria-label="Angry" hx-post="{% url 'interactions:toggle_reaction' post.pk 'angry' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-reactions{% else %}reactions{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "angry"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn" title="Haha" aria-label="Haha" hx-post="{% url 'interactions:toggle_reaction' post.pk 'haha' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-reactions{% else %}reactions{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click.stop="showPicker = false">{{ "haha"|reaction_icon }}</button>
       </div>
+    </div>
+    <div class="flex-1">
+      <button type="button" class="cv-react-btn w-full" hx-get="{% url 'posts:modal' post.pk %}" hx-target="#post-modal-root" hx-swap="innerHTML">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8m-8 4h5m8-4c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+        <span>Comment</span>
+      </button>
     </div>
     <div class="flex-1">
       <button type="button" class="cv-react-btn w-full" hx-get="{% url 'posts:share' post.pk %}" hx-target="#share-{{ post.pk }}" hx-swap="outerHTML">
@@ -54,13 +63,6 @@
         <span>Share</span>
       </button>
     </div>
-    <div class="flex-1">
-      <button type="button" class="cv-react-btn w-full" hx-get="{% url 'interactions:report_post' post.pk %}" hx-target="#report-{{ post.pk }}">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z"></path></svg>
-        <span>Report</span>
-      </button>
-    </div>
   </div>
-  <div id="report-{{ post.pk }}"></div>
 </div>
 {% endwith %}

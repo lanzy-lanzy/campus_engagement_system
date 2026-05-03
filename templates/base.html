@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Campus Voice - Your campus community platform for sharing ideas, concerns, and improvements">
-  <title>{% block title %}Campus Voice{% endblock %}</title>
+  <meta name="description" content="PulseCampus - Turn student voices into campus action.">
+  <title>{% block title %}PulseCampus{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -18,10 +18,11 @@
   {% include "partials/topnav.html" %}
   <main class="pt-[56px] min-h-[calc(100vh-56px)]">
     <div class="{% block main_container_class %}cv-page-narrow{% endblock %} mx-auto px-4 py-5">
-      {% include "partials/messages.html" %}
+      {% block top_messages %}{% include "partials/messages.html" %}{% endblock %}
       {% block content %}{% endblock %}
     </div>
   </main>
+  <div id="create-post-modal-root"></div>
   <script src="{% static 'js/app.js' %}"></script>
   <script>
     if (document.readyState === 'loading') {
@@ -31,6 +32,14 @@
     } else {
       if (typeof initMentions === 'function') initMentions();
     }
+  </script>
+  <script>
+    document.addEventListener('htmx:configRequest', function(evt) {
+      const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+      if (csrfInput) {
+        evt.detail.headers['X-CSRFToken'] = csrfInput.value;
+      }
+    });
   </script>
 </body>
 </html>

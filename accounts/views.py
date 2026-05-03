@@ -11,6 +11,10 @@ from accounts.forms import ProfileForm, StudentRegistrationForm
 from notifications.services import notify_friend_request, notify_friend_accepted
 
 
+def _display_name(user):
+    return getattr(user, "username", "") or user.get_username()
+
+
 def register(request):
     if request.user.is_authenticated:
         return redirect("accounts:post_login_redirect")
@@ -66,7 +70,22 @@ def search_friends(request):
     friends = set()
     for fs in Friendship.objects.filter(Q(requester=request.user, status=Friendship.STATUS_ACCEPTED) | Q(addressee=request.user, status=Friendship.STATUS_ACCEPTED)):
         friend = fs.addressee if fs.requester_id == request.user.pk else fs.requester
-        if not query or query.lower() in friend.username.lower():
+        display_name = _display_name(friend)
+        department = friend.department or ""
+        haystack = f"{friend.username} {display_name} {department}".lower()
+        if not query or query.lower() in haystack:
             friends.add(friend)
     friends = sorted(friends, key=lambda u: u.username)[:10]
-    return JsonResponse([{"id": u.pk, "username": u.username} for u in friends], safe=False)
+    return JsonResponse(
+        [
+            {
+                "id": u.pk,
+                "username": u.username,
+                "display_name": _display_name(u),
+                "department": u.department,
+                "avatar_url": u.avatar.url if u.avatar else "",
+            }
+            for u in friends
+        ],
+        safe=False,
+    )

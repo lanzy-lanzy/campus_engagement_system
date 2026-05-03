@@ -1,5 +1,32 @@
-<form method="post" action="{% url 'interactions:add_reply' comment.pk %}" hx-post="{% url 'interactions:add_reply' comment.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="flex items-center gap-2 mt-2">
+<form method="post" action="{% url 'interactions:add_reply' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-post="{% url 'interactions:add_reply' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-comments{% else %}comments{% endif %}-{{ post.pk }}" hx-swap="outerHTML" class="flex items-center gap-2 mt-2">
   {% csrf_token %}
-  <input type="text" name="body" class="cv-input text-sm py-2" placeholder="Write a reply..." required>
+  <div class="flex-1 relative" x-data="mentionComposer('')" x-init="init($refs.editor, $refs.body)">
+    <input type="hidden" name="body" x-ref="body" value="">
+    <div
+      x-ref="editor"
+      data-mention-editor
+      contenteditable="true"
+      role="textbox"
+      aria-label="Write a reply"
+      data-placeholder="Write a reply..."
+      class="cv-mention-editor cv-reply-mention-editor"
+      @input="onInput"
+      @keydown="onKeydown"
+      @blur="onBlur"></div>
+    <div x-show="open" x-cloak class="mention-dropdown mention-dropdown-up">
+      <template x-for="(friend, index) in friends" :key="friend.id">
+        <button type="button" class="mention-item w-full text-left" :class="{ 'is-active': index === activeIndex }" @mousedown.prevent="selectFriend(index)">
+          <span class="mention-item-avatar">
+            <template x-if="friend.avatar_url"><img :src="friend.avatar_url" alt=""></template>
+            <template x-if="!friend.avatar_url"><span x-text="initialFor(friend)"></span></template>
+          </span>
+          <span class="min-w-0">
+            <span class="mention-item-name" x-text="friend.display_name || friend.username"></span>
+            <span class="mention-item-meta" x-text="friend.department || ('@' + friend.username)"></span>
+          </span>
+        </button>
+      </template>
+    </div>
+  </div>
   <button type="submit" class="btn-fb btn-primary-fb text-sm py-1 px-3">Reply</button>
 </form>

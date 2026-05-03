@@ -4,29 +4,42 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Campus Voice - Your campus community platform">
-  <title>{% block title %}Campus Voice{% endblock %}</title>
+  <meta name="description" content="PulseCampus - Turn student voices into campus action.">
+  <title>{% block title %}PulseCampus{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
-<body class="auth-bg min-h-screen flex items-center justify-center px-4 py-8 font-['Inter',system-ui,sans-serif]">
-  <div class="w-full max-w-[980px] flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-16 animate-fade-in">
-    <!-- Left hero -->
-    <div class="flex-1 text-center lg:text-left lg:pt-12 max-w-md">
-      <h1 class="text-[#1877f2] text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">Campus Voice</h1>
-      <p class="mt-4 text-lg lg:text-xl text-[#606770] leading-relaxed">Share ideas, raise concerns, and drive improvements across your campus community.</p>
-    </div>
-    <!-- Right card -->
-    <div class="w-full max-w-[396px]">
+<body class="auth-bg min-h-screen font-['Inter',system-ui,sans-serif]">
+  <main class="pc-auth-shell animate-fade-in">
+    <section class="pc-auth-story" aria-label="PulseCampus introduction">
+      <a href="{% url 'posts:feed' %}" class="pc-brand-lockup">
+        <span class="pc-logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <circle cx="24" cy="24" r="22"></circle>
+            <path d="M14 17.5h20a5 5 0 0 1 5 5v5.2a5 5 0 0 1-5 5H24l-7.8 5v-5H14a5 5 0 0 1-5-5v-5.2a5 5 0 0 1 5-5Z"></path>
+            <path d="M15 25h5l2.2-4.5 4 9 3-6H36"></path>
+          </svg>
+        </span>
+        <span>PulseCampus</span>
+      </a>
+      <div class="pc-auth-copy">
+        <p class="pc-kicker">Campus feedback hub</p>
+        <h1>Turn student voices into campus action.</h1>
+        <p>Share ideas, raise concerns, and help your school spot what matters faster.</p>
+      </div>
+      <div class="pc-auth-scene" data-pulse-scene data-scene-variant="auth" aria-hidden="true"></div>
+    </section>
+    <section class="pc-auth-panel" aria-label="Account access">
       {% include "partials/messages.html" %}
       {% block content %}{% endblock %}
-    </div>
-  </div>
+    </section>
+  </main>
   <script src="{% static 'js/app.js' %}"></script>
 </body>
 </html>

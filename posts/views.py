@@ -85,21 +85,25 @@ def _save_post_media(post, files):
         )
 
 
-@login_required
 def feed(request):
+    if not request.user.is_authenticated:
+        return render(request, "landing.html")
+
     sort = request.GET.get("sort", "latest")
     query = request.GET.get("q", "")
     category = request.GET.get("category", "")
     page = request.GET.get("page", 1)
+    open_post_id = request.GET.get("post", "")
     posts = Post.objects.filter(status=Post.STATUS_APPROVED).select_related("author", "shared_from__author").prefetch_related(
         "attachments",
         "shared_from__attachments",
         "mentions__recipient",
         "comments__mentions__recipient",
+        "tags",
     )
 
     if query:
-        posts = posts.filter(models.Q(title__icontains=query) | models.Q(description__icontains=query))
+        posts = posts.filter(models.Q(title__icontains=query) | models.Q(description__icontains=query) | models.Q(tags__name__icontains=query)).distinct()
 
     if category:
         posts = posts.filter(category=category)
@@ -149,6 +153,7 @@ def feed(request):
         "page_obj": page_obj,
         "categories": Post.CATEGORY_CHOICES,
         "feed_sidebar": feed_sidebar,
+        "open_post_id": open_post_id if open_post_id and Post.objects.filter(pk=open_post_id, status=Post.STATUS_APPROVED).exists() else "",
     }
 
     if request.headers.get("HX-Request") and not request.headers.get("HX-Boosted"):
@@ -166,6 +171,7 @@ def create_post(request):
             post = form.save(commit=False)
             post.author = request.user
             post.save()
+            form.save_tags(post)
             _save_post_media(post, request.FILES)
             process_mentions(request.user, f"{post.title} {post.description}", post=post)
             if request.headers.get("HX-Request"):
@@ -181,6 +187,12 @@ def create_post(request):
     else:
         form = PostForm()
     return render(request, "posts/post_form.html", {"form": form, "mode": "Create"})
+
+
+@login_required
+def create_post_modal(request):
+    form = PostForm()
+    return render(request, "posts/partials/create_post_modal.html", {"form": form})
 
 
 @login_required
@@ -215,6 +227,35 @@ def share_post(request, pk):
 
 
 @login_required
+def post_modal(request, pk):
+    post = get_object_or_404(
+        Post.objects.filter(status=Post.STATUS_APPROVED)
+        .select_related("author", "shared_from__author")
+        .prefetch_related(
+            "attachments",
+            "shared_from__attachments",
+            "mentions__recipient",
+            "comments__author",
+            "comments__mentions__recipient",
+            "comments__reactions",
+            "comments__replies__author",
+            "comments__replies__mentions__recipient",
+            "comments__replies__reactions",
+            "tags",
+        ),
+        pk=pk,
+    )
+    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author").prefetch_related(
+        "mentions__recipient",
+        "replies__author",
+        "replies__mentions__recipient",
+        "replies__reactions",
+        "reactions",
+    )
+    return render(request, "posts/partials/post_modal.html", {"post": post, "comments": comments})
+
+
+@login_required
 def edit_post(request, pk):
     post = get_object_or_404(Post.objects.prefetch_related("attachments"), pk=pk)
     if post.author != request.user and not request.user.is_campus_admin:
@@ -224,6 +265,7 @@ def edit_post(request, pk):
         media_is_valid = _validate_post_media(form, request.FILES, post=post)
         if form.is_valid() and media_is_valid:
             post = form.save()
+            form.save_tags(post)
             _save_post_media(post, request.FILES)
             process_mentions(request.user, f"{post.title} {post.description}", post=post)
             return redirect("posts:feed")

@@ -1,24 +1,27 @@
 {% extends "base_auth.html" %}
-{% block title %}Login - Campus Voice{% endblock %}
+{% block title %}Login - PulseCampus{% endblock %}
 {% block content %}
-<div class="cv-card p-5 animate-scale-in">
-  <form method="post" class="space-y-3">
+<div class="pc-auth-card pc-login-card animate-scale-in">
+  <div class="pc-auth-card-head">
+    <span class="pc-form-badge">Welcome back</span>
+    <h2>Log in to PulseCampus</h2>
+    <p>Continue the conversations shaping your campus.</p>
+  </div>
+  <form method="post" class="space-y-4">
     {% csrf_token %}
     {% for field in form %}
-      <div>
-        <input type="{% if field.name == 'password' %}password{% else %}text{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" placeholder="{{ field.label }}" class="cv-input" {% if field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}>
+      <div class="pc-field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        <input type="{% if field.name == 'password' %}password{% else %}text{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" placeholder="{{ field.label }}" class="cv-input pc-input" {% if field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}>
         {% if field.errors %}
           {% for error in field.errors %}
-            <p class="mt-1 text-[13px] text-red-600">{{ error }}</p>
+            <p class="pc-error">{{ error }}</p>
           {% endfor %}
         {% endif %}
       </div>
     {% endfor %}
-    <button type="submit" class="btn-fb btn-primary-fb w-full text-lg py-3 cursor-pointer">Log In</button>
+    <button type="submit" class="pc-primary-button pc-submit-button">Log in</button>
   </form>
-  <hr class="cv-divider my-5">
-  <div class="text-center">
-    <a href="{% url 'accounts:register' %}" class="btn-fb btn-success-fb text-base px-6 py-3">Create New Account</a>
-  </div>
+  <p class="pc-auth-switch">New to PulseCampus? <a href="{% url 'accounts:register' %}">Create an account</a></p>
 </div>
 {% endblock %}

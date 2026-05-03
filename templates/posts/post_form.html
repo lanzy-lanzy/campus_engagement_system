@@ -7,7 +7,7 @@
     {% csrf_token %}
     <div>
       <label for="{{ form.title.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Title</label>
-      <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" class="cv-input" placeholder="Post title...">
+      <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" class="cv-input" placeholder="Post title..." data-mentions>
       {% for error in form.title.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
     </div>
 
@@ -15,6 +15,12 @@
       <label for="{{ form.description.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Description</label>
       <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="5" class="cv-input resize-none" placeholder="Share the details... Use @username to mention friends" data-mentions>{{ form.description.value|default:'' }}</textarea>
       {% for error in form.description.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.tags.id_for_label }}" class="block text-[13px] font-semibold text-[#606770] mb-1.5 uppercase tracking-wide">Tags</label>
+      <input type="text" name="{{ form.tags.name }}" id="{{ form.tags.id_for_label }}" value="{{ form.tags.value|default:'' }}" class="cv-input" placeholder="safety, library-hours, campus-life">
+      {% for error in form.tags.errors %}<p class="mt-1 text-[13px] text-red-600">{{ error }}</p>{% endfor %}
     </div>
 
     <div>

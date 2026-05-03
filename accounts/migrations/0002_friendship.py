@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
             options={
                 "constraints": [
                     models.CheckConstraint(
-                        condition=models.Q(
+                        check=models.Q(
                             ("requester", models.F("addressee")), _negated=True
                         ),
                         name="friendship_no_self_request",

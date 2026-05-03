@@ -102,16 +102,17 @@ class NotificationFeatureTests(TestCase):
         self.assertIn(Notification.KIND_SHARE_POST, kinds)
 
     def test_notifications_page_lists_and_marks_notifications_read(self):
+        post = Post.objects.create(
+            author=self.author,
+            title="Mention test",
+            description="Hi @friend",
+            category=Post.CATEGORY_SUGGESTION,
+        )
         notification = Notification.objects.create(
             recipient=self.friend,
             actor=self.author,
             kind=Notification.KIND_MENTION_POST,
-            post=Post.objects.create(
-                author=self.author,
-                title="Mention test",
-                description="Hi @friend",
-                category=Post.CATEGORY_SUGGESTION,
-            ),
+            post=post,
         )
         self.client.login(email="friend@example.com", password="StrongPass123")
 
@@ -119,5 +120,9 @@ class NotificationFeatureTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "mentioned you in a post")
+        self.assertContains(response, f'href="{reverse("posts:feed")}?post={post.pk}#post-{post.pk}"')
+        self.assertContains(response, "cv-notifications-layout")
+        self.assertContains(response, "cv-notifications-side")
+        self.assertContains(response, "1 person involved")
         notification.refresh_from_db()
         self.assertIsNotNone(notification.read_at)

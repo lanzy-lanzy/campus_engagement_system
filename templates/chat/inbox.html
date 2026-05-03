@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Messenger{% endblock %}
 {% block main_container_class %}cv-chat-page{% endblock %}
+{% block top_messages %}{% endblock %}
 {% block content %}
 <section class="cv-chat-shell">
   <aside class="cv-chat-sidebar">
@@ -22,7 +23,11 @@
         {% for item in conversation_items %}
           {% with conversation=item.conversation person=item.person last=item.last_message unread_count=item.unread_count %}
             <a href="{% url 'chat:conversation' conversation.pk %}" class="cv-chat-list-item {% if active_conversation.pk == conversation.pk %}active{% endif %}">
-              <span class="cv-chat-avatar">{{ person.username|first|upper }}</span>
+              {% if person.avatar %}
+                <img src="{{ person.avatar.url }}" alt="" class="cv-chat-avatar">
+              {% else %}
+                <span class="cv-chat-avatar">{{ person.get_full_name|default:person.username|first|upper }}</span>
+              {% endif %}
               <span class="min-w-0 flex-1">
                 <span class="cv-chat-name">{{ person.get_full_name|default:person.username }}</span>
                 <span class="cv-chat-preview">{% if last %}{% if last.sender == user %}You: {% endif %}{{ last.body }}{% else %}No messages yet{% endif %}</span>
@@ -42,7 +47,11 @@
         {% with person=item.user friendship_status=item.friendship_status %}
         <div class="cv-chat-list-item">
         <a href="{% url 'chat:start' person.pk %}" class="cv-chat-person-link">
-          <span class="cv-chat-avatar">{{ person.username|first|upper }}</span>
+          {% if person.avatar %}
+            <img src="{{ person.avatar.url }}" alt="" class="cv-chat-avatar">
+          {% else %}
+            <span class="cv-chat-avatar">{{ person.get_full_name|default:person.username|first|upper }}</span>
+          {% endif %}
           <span class="min-w-0 flex-1">
             <span class="cv-chat-name">{{ person.get_full_name|default:person.username }}</span>
             <span class="cv-chat-preview">{{ person.department|default:"Campus member" }}</span>

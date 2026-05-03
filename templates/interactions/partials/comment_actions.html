@@ -1,7 +1,7 @@
 {% load interaction_tags %}
 <div id="comment-actions-{{ comment.pk }}" class="flex items-center gap-3 mt-1 ml-3 text-[12px] text-[#65676b]">
   <span>{{ comment.created_at|timesince }} ago</span>
-  <button type="button" class="hover:underline cursor-pointer font-medium" hx-get="{% url 'interactions:add_reply' comment.pk %}" hx-target="#reply-form-{{ comment.pk }}" hx-swap="innerHTML">Reply</button>
+  <button type="button" class="hover:underline cursor-pointer font-medium" hx-get="{% url 'interactions:add_reply' comment.pk %}{% if in_modal %}?modal=1{% endif %}" hx-target="#reply-form-{{ comment.pk }}" hx-swap="innerHTML">Reply</button>
   
   {% with comment_user_reaction=comment|get_comment_reaction:user %}
   <div class="relative flex items-center"
@@ -47,16 +47,4 @@
   {% endif %}
   {% endwith %}
 
-  {% if post.author == user or user.is_campus_admin %}
-    <form method="post" action="{% url 'interactions:hide_comment' comment.pk %}" hx-post="{% url 'interactions:hide_comment' comment.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="inline">
-      {% csrf_token %}
-      <button type="submit" class="text-red-500 hover:text-red-700 hover:underline cursor-pointer font-medium">Hide</button>
-    </form>
-  {% endif %}
-  {% if comment.author == user or user.is_campus_admin %}
-    <form method="post" action="{% url 'interactions:delete_comment' comment.pk %}" hx-post="{% url 'interactions:delete_comment' comment.pk %}" hx-target="#comments-{{ post.pk }}" hx-swap="outerHTML" class="inline">
-      {% csrf_token %}
-      <button type="submit" class="text-red-500 hover:text-red-700 hover:underline cursor-pointer font-medium">Delete</button>
-    </form>
-  {% endif %}
 </div>

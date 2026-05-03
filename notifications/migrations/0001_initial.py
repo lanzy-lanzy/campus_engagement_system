@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
                 "ordering": ("created_at",),
                 "constraints": [
                     models.CheckConstraint(
-                        condition=models.Q(
+                        check=models.Q(
                             models.Q(
                                 ("comment__isnull", True), ("post__isnull", False)
                             ),

@@ -72,7 +72,7 @@ class Notification(models.Model):
             if self.actor_id:
                 return f"{reverse('accounts:profile')}#user-{self.actor_id}"
         if self.post_id:
-            return f"{reverse('posts:feed')}#post-{self.post_id}"
+            return f"{reverse('posts:feed')}?post={self.post_id}#post-{self.post_id}"
         return reverse("notifications:inbox")
 
 
@@ -87,7 +87,7 @@ class Mention(models.Model):
         ordering = ("created_at",)
         constraints = [
             models.CheckConstraint(
-                condition=(
+                check=(
                     Q(post__isnull=False, comment__isnull=True)
                     | Q(post__isnull=True, comment__isnull=False)
                 ),

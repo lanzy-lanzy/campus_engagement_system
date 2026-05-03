@@ -1,7 +1,7 @@
 {% load interaction_tags %}
 {% with reaction_counts=post|reaction_counts %}
 {% with total_reactions=reaction_counts|total_reactions %}
-<div id="post-stats-{{ post.pk }}" class="flex items-center justify-between px-4 py-2 text-[13px] text-[#65676b]" hx-swap-oob="true">
+<div id="{% if in_modal %}modal-post-stats-{{ post.pk }}{% else %}post-stats-{{ post.pk }}{% endif %}" class="flex items-center justify-between px-4 py-2 text-[13px] text-[#65676b]" {% if force_oob %}hx-swap-oob="outerHTML"{% elif not in_modal %}hx-swap-oob="true"{% endif %}>
   {% if total_reactions > 0 %}
   <div class="flex items-center gap-1">
     <div class="flex -space-x-1">

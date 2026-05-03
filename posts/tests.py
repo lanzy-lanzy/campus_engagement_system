@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from interactions.models import Comment, Reaction
 
-from .models import Post, PostAttachment
+from .models import Post, PostAttachment, PostTag
 
 
 class PostModelTests(TestCase):
@@ -65,6 +65,25 @@ class PostViewTests(TestCase):
         self.assertRedirects(response, reverse("posts:feed"))
         self.assertEqual(Post.objects.count(), 1)
 
+    def test_anonymous_feed_renders_pulsecampus_landing(self):
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "PulseCampus")
+        self.assertContains(response, "Turn student voices into campus action.")
+        self.assertContains(response, 'data-pulse-scene')
+        self.assertContains(response, reverse("accounts:register"))
+        self.assertNotContains(response, 'id="feed-composer"')
+
+    def test_authenticated_feed_still_renders_feed(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="feed-composer"')
+        self.assertContains(response, "PulseCampus")
+
     def test_student_cannot_edit_other_student_post(self):
         other = get_user_model().objects.create_user(username="other", email="other@example.com", password="StrongPass123")
         post = Post.objects.create(
@@ -103,6 +122,8 @@ class PostViewTests(TestCase):
         self.assertContains(response, 'name="images"')
         self.assertContains(response, "multiple")
         self.assertContains(response, 'name="video"')
+        self.assertContains(response, 'name="tags"')
+        self.assertContains(response, "data-mentions")
 
     def test_htmx_create_post_accepts_up_to_five_images_and_one_video(self):
         self.client.login(email="student@example.com", password="StrongPass123")
@@ -173,6 +194,30 @@ class PostViewTests(TestCase):
         self.assertContains(response, "Inline campus update")
         self.assertContains(response, 'hx-swap-oob="outerHTML"')
 
+    def test_create_post_saves_normalized_tags_and_renders_them(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.post(
+            reverse("posts:create"),
+            {
+                "title": "Safer evening paths",
+                "description": "Add lights near the gym.",
+                "category": Post.CATEGORY_IMPROVEMENT,
+                "tags": "#Safety, campus lights,  student-life  ",
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        post = Post.objects.get(title="Safer evening paths")
+        self.assertEqual(
+            list(post.tags.order_by("name").values_list("name", flat=True)),
+            ["campus-lights", "safety", "student-life"],
+        )
+        self.assertEqual(PostTag.objects.count(), 3)
+        self.assertContains(response, "#safety")
+        self.assertContains(response, "#campus-lights")
+
     def test_feed_renders_share_action_for_posts(self):
         post = Post.objects.create(
             author=self.user,
@@ -187,6 +232,77 @@ class PostViewTests(TestCase):
 
         self.assertContains(response, f'hx-get="{reverse("posts:share", args=[post.pk])}"')
         self.assertContains(response, f'id="share-{post.pk}"')
+
+    def test_post_modal_renders_post_actions_and_comments(self):
+        post = Post.objects.create(
+            author=self.user,
+            title="Next.js Folder Structure",
+            description="Understand project architecture at a glance.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        Comment.objects.create(post=post, author=self.user, body="gg")
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:modal", args=[post.pk]), HTTP_HX_REQUEST="true")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "student's Post")
+        self.assertContains(response, "Next.js Folder Structure")
+        self.assertContains(response, "Most relevant")
+        self.assertContains(response, "gg")
+        self.assertContains(response, 'id="post-modal"')
+        self.assertNotContains(response, 'id="post-modal-root"')
+        self.assertContains(response, "data-post-modal-backdrop")
+        self.assertContains(response, "max-w-[630px]")
+        self.assertContains(response, "modal-post-stats")
+        self.assertContains(response, 'id="modal-reactions-')
+        self.assertContains(response, 'id="modal-comments-')
+        self.assertContains(response, "/comments/?modal=1")
+        self.assertContains(response, "/react/like/?modal=1")
+        self.assertNotContains(response, 'hx-swap-oob="true"')
+        self.assertContains(response, "cv-comment-menu-button")
+        self.assertContains(response, "document.getElementById('post-modal-root').innerHTML = ''")
+        self.assertContains(response, "Like")
+        self.assertContains(response, "Comment")
+        self.assertContains(response, "Share")
+
+    def test_feed_comment_action_targets_post_modal(self):
+        post = Post.objects.create(
+            author=self.user,
+            title="Open comments in modal",
+            description="The feed should stay clean.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertContains(response, 'id="post-modal-root"')
+        self.assertContains(response, f'hx-get="{reverse("posts:modal", args=[post.pk])}"')
+        self.assertContains(response, 'hx-target="#post-modal-root"')
+        self.assertContains(response, 'hx-swap="innerHTML"')
+        self.assertContains(response, "Comment")
+        self.assertContains(response, "Share")
+
+    def test_feed_can_auto_open_post_modal_from_notification_link(self):
+        post = Post.objects.create(
+            author=self.user,
+            title="Open from notification",
+            description="Notification links should show the post viewer.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(f"{reverse('posts:feed')}?post={post.pk}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'id="post-{post.pk}"')
+        self.assertContains(response, f'hx-get="{reverse("posts:modal", args=[post.pk])}"')
+        self.assertContains(response, 'hx-trigger="load"')
+        self.assertContains(response, 'hx-target="#post-modal-root"')
 
     def test_share_form_renders_for_htmx(self):
         post = Post.objects.create(

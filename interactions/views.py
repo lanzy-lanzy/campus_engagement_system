@@ -17,6 +17,27 @@ def _htmx_error(request, message, status=400):
     return HttpResponse(html, status=status)
 
 
+def _is_modal_request(request):
+    return request.GET.get("modal") == "1"
+
+
+def _render_comment_list(request, post, status=200, in_modal=False):
+    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author").prefetch_related(
+        "mentions__recipient",
+        "replies__author",
+        "replies__mentions__recipient",
+        "replies__reactions",
+        "reactions",
+    )
+    context = {"post": post, "comments": comments, "form": CommentForm(), "in_modal": in_modal}
+    if in_modal:
+        comments_html = render_to_string("interactions/partials/comment_list.html", context, request=request)
+        modal_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "in_modal": True, "force_oob": True}, request=request)
+        feed_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "force_oob": True}, request=request)
+        return HttpResponse(comments_html + modal_stats_html + feed_stats_html, status=status)
+    return render(request, "interactions/partials/comment_list.html", context, status=status)
+
+
 @login_required
 def toggle_reaction(request, post_id, kind):
     if request.method != "POST":
@@ -25,6 +46,7 @@ def toggle_reaction(request, post_id, kind):
         return HttpResponseBadRequest("Unknown reaction")
 
     post = get_object_or_404(Post, pk=post_id, status=Post.STATUS_APPROVED)
+    in_modal = _is_modal_request(request)
 
     reaction = Reaction.objects.filter(post=post, comment__isnull=True, user=request.user).first()
     if reaction and reaction.kind == kind:
@@ -37,8 +59,12 @@ def toggle_reaction(request, post_id, kind):
         Reaction.objects.create(post=post, user=request.user, kind=kind)
         notify_post_reaction(post, request.user)
 
-    reaction_bar_html = render_to_string("interactions/partials/reaction_bar.html", {"post": post}, request=request)
-    post_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post}, request=request)
+    reaction_bar_html = render_to_string("interactions/partials/reaction_bar.html", {"post": post, "in_modal": in_modal}, request=request)
+    post_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "in_modal": in_modal, "force_oob": in_modal}, request=request)
+    if in_modal:
+        feed_reaction_bar_html = render_to_string("interactions/partials/reaction_bar.html", {"post": post, "force_oob": True}, request=request)
+        feed_post_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "force_oob": True}, request=request)
+        return HttpResponse(reaction_bar_html + post_stats_html + feed_reaction_bar_html + feed_post_stats_html)
     return HttpResponse(reaction_bar_html + post_stats_html)
 
 
@@ -73,17 +99,17 @@ def hide_comment(request, comment_id):
         return HttpResponseBadRequest("POST required")
     comment.status = Comment.STATUS_HIDDEN
     comment.save(update_fields=["status"])
-    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author")
-    return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": CommentForm()})
+    return _render_comment_list(request, post, in_modal=_is_modal_request(request))
 
 
 @login_required
 def add_reply(request, comment_id):
     parent_comment = get_object_or_404(Comment, pk=comment_id)
     post = parent_comment.post
+    in_modal = _is_modal_request(request)
     if request.method != "POST":
         form = CommentForm()
-        return render(request, "interactions/partials/reply_form.html", {"comment": parent_comment, "form": form, "post": post})
+        return render(request, "interactions/partials/reply_form.html", {"comment": parent_comment, "form": form, "post": post, "in_modal": in_modal})
 
     form = CommentForm(request.POST)
     if form.is_valid():
@@ -95,22 +121,22 @@ def add_reply(request, comment_id):
         process_mentions(request.user, comment.body, comment=comment)
         notify_post_comment(post, comment)
         form = CommentForm()
-    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author").prefetch_related("mentions__recipient", "replies__mentions__recipient")
-    return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": form})
+    return _render_comment_list(request, post, in_modal=in_modal)
 
 
 @login_required
 def get_reaction_bar(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    return render(request, "interactions/partials/reaction_bar.html", {"post": post})
+    return render(request, "interactions/partials/reaction_bar.html", {"post": post, "in_modal": _is_modal_request(request)})
 
 
 @login_required
 def add_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id, status=Post.STATUS_APPROVED)
+    in_modal = _is_modal_request(request)
     if request.method != "POST":
         form = CommentForm()
-        return render(request, "interactions/partials/comment_form.html", {"post": post, "form": form})
+        return render(request, "interactions/partials/comment_form.html", {"post": post, "form": form, "in_modal": in_modal})
 
     form = CommentForm(request.POST)
     if form.is_valid():
@@ -121,8 +147,7 @@ def add_comment(request, post_id):
         process_mentions(request.user, comment.body, comment=comment)
         notify_post_comment(post, comment)
         form = CommentForm()
-    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author").prefetch_related("mentions__recipient", "replies__mentions__recipient")
-    return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": form})
+    return _render_comment_list(request, post, in_modal=in_modal)
 
 
 @login_required
@@ -134,8 +159,32 @@ def delete_comment(request, comment_id):
         return HttpResponseBadRequest("POST required")
     post = comment.post
     comment.delete()
-    comments = post.comments.filter(parent__isnull=True, status=Comment.STATUS_VISIBLE).select_related("author")
-    return render(request, "interactions/partials/comment_list.html", {"post": post, "comments": comments, "form": CommentForm()})
+    return _render_comment_list(request, post, in_modal=_is_modal_request(request))
+
+
+@login_required
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment.objects.select_related("post", "author"), pk=comment_id)
+    in_modal = _is_modal_request(request)
+    if comment.author != request.user and not request.user.is_campus_admin:
+        raise PermissionDenied
+
+    if request.method != "POST":
+        form = CommentForm(instance=comment)
+        return render(request, "interactions/partials/comment_edit_form.html", {"comment": comment, "post": comment.post, "form": form, "in_modal": in_modal})
+
+    form = CommentForm(request.POST, instance=comment)
+    if form.is_valid():
+        comment = form.save()
+        process_mentions(request.user, comment.body, comment=comment)
+        return _render_comment_list(request, comment.post, in_modal=in_modal)
+
+    return render(
+        request,
+        "interactions/partials/comment_edit_form.html",
+        {"comment": comment, "post": comment.post, "form": form, "in_modal": in_modal},
+        status=400,
+    )
 
 
 @login_required

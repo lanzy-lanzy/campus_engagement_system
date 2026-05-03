@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Feed - Campus Voice{% endblock %}
+{% block title %}Feed - PulseCampus{% endblock %}
 {% block main_container_class %}cv-page-wide{% endblock %}
 {% block content %}
 <div class="cv-feed-shell">
@@ -43,4 +43,12 @@
 
   {% include "posts/partials/feed_right_rail.html" %}
 </div>
+<div id="post-modal-root"
+     {% if open_post_id %}
+     hx-get="{% url 'posts:modal' open_post_id %}"
+     hx-trigger="load"
+     hx-target="#post-modal-root"
+     hx-swap="innerHTML"
+     {% endif %}></div>
+<div id="create-post-modal-root"></div>
 {% endblock %}

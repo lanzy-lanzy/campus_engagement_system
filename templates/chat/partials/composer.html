@@ -3,7 +3,8 @@
       action="{% url 'chat:send' active_conversation.pk %}"
       hx-post="{% url 'chat:send' active_conversation.pk %}"
       hx-target="#chat-messages"
-      hx-swap="outerHTML"
+      hx-swap="innerHTML"
+      hx-on::after-request="if (event.detail.successful) { this.reset(); window.location.href = window.location.href }"
       class="cv-chat-composer"
       {% if oob %}hx-swap-oob="outerHTML"{% endif %}>
   {% csrf_token %}

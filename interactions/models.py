@@ -47,7 +47,7 @@ class Reaction(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                condition=(
+                check=(
                     Q(post__isnull=False, comment__isnull=True)
                     | Q(post__isnull=True, comment__isnull=False)
                 ),

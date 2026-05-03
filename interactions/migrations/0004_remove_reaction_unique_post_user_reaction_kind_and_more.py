@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="reaction",
             constraint=models.CheckConstraint(
-                condition=models.Q(
+                check=models.Q(
                     models.Q(("comment__isnull", True), ("post__isnull", False)),
                     models.Q(("comment__isnull", False), ("post__isnull", True)),
                     _connector="OR",

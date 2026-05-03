@@ -1,6 +1,10 @@
 {% with person=active_person %}
 <header class="cv-chat-header">
-  <div class="cv-chat-avatar">{{ person.username|first|upper }}</div>
+  {% if person.avatar %}
+    <img src="{{ person.avatar.url }}" alt="" class="cv-chat-avatar">
+  {% else %}
+    <div class="cv-chat-avatar">{{ person.get_full_name|default:person.username|first|upper }}</div>
+  {% endif %}
   <div class="min-w-0">
     <h2>{{ person.get_full_name|default:person.username }}</h2>
     <p>{{ person.department|default:"Campus member" }}</p>

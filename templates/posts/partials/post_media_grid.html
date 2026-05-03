@@ -1,7 +1,36 @@
+{% load static %}
 {% with attachments=post.attachments.all %}
-  {% if attachments %}
-    <div class="cv-media-grid cv-media-count-{{ attachments|length }}">
-      {% for attachment in attachments %}
+  {% if attachments|length > 1 %}
+    <div class="cv-media-carousel"
+         x-data="{ current: 0, total: {{ attachments|length }}, startX: null }"
+         @touchstart="startX = $event.touches[0].clientX"
+         @touchend="if (!startX) return; const diff = startX - $event.changedTouches[0].clientX; if (diff > 50 && current < total - 1) current++; if (diff < -50 && current > 0) current--; startX = null;">
+      <div class="cv-media-track" :style="'transform: translateX(-' + (current * 100) + '%)'">
+        {% for attachment in attachments %}
+          <div class="cv-media-slide">
+            {% if attachment.media_type == "video" %}
+              <video src="{{ attachment.file.url }}" controls preload="metadata"></video>
+            {% else %}
+              <img src="{{ attachment.file.url }}" alt="">
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <button type="button" class="cv-media-arrow cv-media-arrow-left" x-show="current > 0" x-cloak @click.prevent="current--" aria-label="Previous image">
+        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <button type="button" class="cv-media-arrow cv-media-arrow-right" x-show="current < total - 1" x-cloak @click.prevent="current++" aria-label="Next image">
+        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+      </button>
+
+      <div class="cv-media-counter">
+        <span x-text="current + 1"></span> / {{ attachments|length }}
+      </div>
+    </div>
+  {% elif attachments|length == 1 %}
+    <div class="cv-media-grid cv-media-count-1">
+      {% with attachment=attachments.0 %}
         <div class="cv-media-item">
           {% if attachment.media_type == "video" %}
             <video src="{{ attachment.file.url }}" controls preload="metadata"></video>
@@ -9,7 +38,7 @@
             <img src="{{ attachment.file.url }}" alt="">
           {% endif %}
         </div>
-      {% endfor %}
+      {% endwith %}
     </div>
   {% elif post.image %}
     <div class="cv-media-grid cv-media-count-1">
