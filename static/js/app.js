@@ -158,6 +158,63 @@ window.mentionComposer = function(initialValue) {
   };
 };
 
+window.pulseDefaultReaction = function(button) {
+  if (!button || !window.htmx) return;
+  const hasReaction = Boolean(button.dataset.currentReactionKind);
+  const url = hasReaction ? button.dataset.defaultReactionUrl : button.dataset.quickReactionUrl;
+  const target = button.dataset.reactionTarget;
+  if (!url || !target) return;
+
+  htmx.ajax('POST', url, {
+    target: target,
+    swap: 'outerHTML',
+    source: button
+  });
+};
+
+window.previewPostReaction = function(el) {
+  try {
+    if (!el) return;
+    const kind = el.dataset.kind || '';
+    const iconHtml = el.innerHTML || el.dataset.icon || '';
+
+    // Find containing post stats block (feed or modal)
+    let container = el.closest('[id^="post-stats-"]');
+    if (!container) container = el.closest('[id^="modal-post-stats-"]');
+    // Fallback to hx-target selector
+    if (!container) {
+      const target = el.getAttribute('hx-target');
+      if (target) container = document.querySelector(target);
+    }
+    if (!container) return;
+
+    // Update current reaction data attribute
+    try { container.dataset.currentReaction = kind; } catch (e) {}
+
+    // Update inline like icon
+    const inline = container.querySelector('.cv-fb-inline-like');
+    if (inline) {
+      inline.classList.add('active');
+      inline.innerHTML = iconHtml;
+    }
+
+    // Mark the main toggle button as active and update ARIA
+    const mainBtn = container.querySelector('button[aria-pressed]');
+    if (mainBtn) {
+      mainBtn.classList.add('active');
+      mainBtn.setAttribute('aria-pressed', 'true');
+      mainBtn.setAttribute('aria-label', `Remove ${kind} reaction`);
+    }
+
+    // Update active state inside the picker
+    const prevActive = container.querySelector('.cv-fb-reaction-option.active');
+    if (prevActive) prevActive.classList.remove('active');
+    try { el.classList.add('active'); } catch (e) {}
+  } catch (e) {
+    console.warn('previewPostReaction failed', e);
+  }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
   initPulseScenes();
   initMentions();
@@ -180,8 +237,16 @@ function initMentions() {
   fields.forEach(initMentionField);
 
   // Also run on HTMX swap for dynamically loaded content
-  document.body.addEventListener('htmx:afterSwap', function() {
+  document.body.addEventListener('htmx:afterSwap', function(evt) {
     document.querySelectorAll('[data-mentions]').forEach(initMentionField);
+    // Initialize Alpine.js for newly swapped-in fragments so x-data/x-show work
+    try {
+      if (window.Alpine && evt && evt.detail && evt.detail.target) {
+        Alpine.initTree(evt.detail.target);
+      }
+    } catch (e) {
+      console.warn('Alpine initTree failed on HTMX swap', e);
+    }
   });
 }
 

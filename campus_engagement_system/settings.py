@@ -46,6 +46,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "notifications.context_processors.navigation_badges",
+                "campus_engagement_system.context_processors.admin_context",
             ],
         },
     },

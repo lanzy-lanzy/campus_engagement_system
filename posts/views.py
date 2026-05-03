@@ -199,8 +199,9 @@ def create_post_modal(request):
 def share_post(request, pk):
     post = get_object_or_404(Post.objects.select_related("author", "shared_from__author"), pk=pk, status=Post.STATUS_APPROVED)
     source = post.share_source
+    in_modal = request.GET.get("modal") == "1"
     if request.method != "POST":
-        return render(request, "posts/partials/share_form.html", {"post": post, "source": source})
+        return render(request, "posts/partials/share_form.html", {"post": post, "source": source, "in_modal": in_modal})
 
     caption = request.POST.get("caption", "").strip()
     shared_post = Post.objects.create(
@@ -217,6 +218,11 @@ def share_post(request, pk):
     notify_post_share(source, request.user)
 
     if request.headers.get("HX-Request"):
+        if in_modal:
+            modal_share_slot_html = render_to_string("posts/partials/share_slot.html", {"post": post, "in_modal": True}, request=request)
+            modal_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "in_modal": True, "force_oob": True}, request=request)
+            feed_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "force_oob": True}, request=request)
+            return HttpResponse(modal_share_slot_html + modal_stats_html + feed_stats_html)
         post_html = render_to_string("posts/partials/post_card.html", {"post": shared_post}, request=request)
         share_slot_html = render_to_string("posts/partials/share_slot.html", {"post": post, "oob": True}, request=request)
         response = HttpResponse(post_html + share_slot_html)

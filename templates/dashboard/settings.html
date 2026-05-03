@@ -1,0 +1,54 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Settings - Admin Dashboard{% endblock %}
+
+{% block admin_content %}
+<div class="animate-fade-in">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">System Settings</h1>
+    <p class="text-slate-500 dark:text-slate-400">Manage roles and permissions</p>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-card mb-6">
+    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Permissions</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50 dark:bg-gray-700/50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Code</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Description</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-gray-700">
+          {% for perm in permissions %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-gray-700/30 transition-colors">
+            <td class="px-4 py-3 font-mono text-sm text-slate-700 dark:text-slate-300">{{ perm.code }}</td>
+            <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{{ perm.description|default:"-" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-card">
+    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Roles</h2>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for role in roles %}
+      <div class="border border-slate-200 dark:border-gray-700 rounded-xl p-4 hover:border-brand-300 dark:hover:border-brand-600 transition-colors">
+        <h3 class="font-semibold text-slate-800 dark:text-slate-100 mb-2">{{ role.name|title }}</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">{{ role.permissions.count }} permissions</p>
+        <div class="flex flex-wrap gap-1.5">
+          {% for perm in role.permissions.all %}
+          <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 dark:bg-gray-700 dark:text-slate-300">
+            {{ perm.code }}
+          </span>
+          {% empty %}
+          <span class="text-xs text-slate-400 dark:text-slate-500">No permissions</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

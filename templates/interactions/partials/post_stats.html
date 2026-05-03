@@ -1,23 +1,78 @@
 {% load interaction_tags %}
+{% with user_reaction=post|user_reaction:user %}
 {% with reaction_counts=post|reaction_counts %}
 {% with total_reactions=reaction_counts|total_reactions %}
-<div id="{% if in_modal %}modal-post-stats-{{ post.pk }}{% else %}post-stats-{{ post.pk }}{% endif %}" class="flex items-center justify-between px-4 py-2 text-[13px] text-[#65676b]" {% if force_oob %}hx-swap-oob="outerHTML"{% elif not in_modal %}hx-swap-oob="true"{% endif %}>
-  {% if total_reactions > 0 %}
-  <div class="flex items-center gap-1">
-    <div class="flex -space-x-1">
-      {% if reaction_counts.like > 0 %}<span class="cv-reaction-badge bg-[#1877f2] z-10">{{ "like"|reaction_icon }}</span>{% endif %}
-      {% if reaction_counts.love > 0 %}<span class="cv-reaction-badge bg-[#e0245e] z-[9]">{{ "love"|reaction_icon }}</span>{% endif %}
-      {% if reaction_counts.wow > 0 %}<span class="cv-reaction-badge bg-[#f7b928] z-[8]">{{ "wow"|reaction_icon }}</span>{% endif %}
-      {% if reaction_counts.haha > 0 %}<span class="cv-reaction-badge bg-[#f7b928] z-[7]">{{ "haha"|reaction_icon }}</span>{% endif %}
-      {% if reaction_counts.sad > 0 %}<span class="cv-reaction-badge bg-[#f7b928] z-[6]">{{ "sad"|reaction_icon }}</span>{% endif %}
-      {% if reaction_counts.angry > 0 %}<span class="cv-reaction-badge bg-[#f57c00] z-[5]">{{ "angry"|reaction_icon }}</span>{% endif %}
+<div id="{% if in_modal %}modal-post-stats-{{ post.pk }}{% else %}post-stats-{{ post.pk }}{% endif %}" class="cv-fb-engagement-strip" data-current-reaction="{{ user_reaction|default:'' }}" {% if force_oob %}hx-swap-oob="outerHTML"{% endif %}>
+  <div class="cv-fb-counts">
+    <div class="cv-fb-count-item cv-fb-count-action relative" x-data="{ showPicker: false, hideTimer: null }" @mouseenter="clearTimeout(hideTimer); showPicker = true" @mouseleave="hideTimer = setTimeout(() => { showPicker = false; }, 220)">
+      <button type="button"
+              class="w-full flex items-center gap-2 {% if user_reaction %}active{% endif %}"
+              aria-pressed="{% if user_reaction %}true{% else %}false{% endif %}"
+              aria-label="{% if user_reaction %}Remove {{ user_reaction }} reaction{% else %}Like this post{% endif %}"
+              hx-post="{% url 'interactions:toggle_reaction' post.pk user_reaction|default:'like' %}{% if in_modal %}?modal=1{% endif %}"
+              hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}"
+              hx-swap="outerHTML"
+              @mouseenter="clearTimeout(hideTimer); showPicker = true"
+              @mouseleave="hideTimer = setTimeout(() => { showPicker = false; }, 220)">
+        {% if user_reaction %}
+          <span class="cv-fb-inline-like active" aria-hidden="true">{{ user_reaction|reaction_icon }}</span>
+        {% elif total_reactions > 0 %}
+          <span class="cv-fb-inline-like active" aria-hidden="true">
+            {% if reaction_counts.like > 0 %}{{ "like"|reaction_icon }}{% elif reaction_counts.love > 0 %}{{ "love"|reaction_icon }}{% elif reaction_counts.care > 0 %}{{ "care"|reaction_icon }}{% elif reaction_counts.haha > 0 %}{{ "haha"|reaction_icon }}{% elif reaction_counts.wow > 0 %}{{ "wow"|reaction_icon }}{% elif reaction_counts.sad > 0 %}{{ "sad"|reaction_icon }}{% else %}{{ "angry"|reaction_icon }}{% endif %}
+          </span>
+        {% else %}
+          <span class="cv-fb-inline-like" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M8.75 10.5v9h-4.5v-9h4.5Zm1.5 8.75V10.1l3.42-5.32c.24-.37.65-.58 1.09-.58.78 0 1.39.68 1.3 1.45l-.47 4.1h3.16c1.25 0 2.2 1.12 1.99 2.35l-.86 5.08a2.5 2.5 0 0 1-2.47 2.08h-7.16Z"></path></svg>
+          </span>
+        {% endif %}
+        <span>{{ total_reactions }}</span>
+      </button>
+
+      <div x-show="showPicker" x-cloak @mouseenter="clearTimeout(hideTimer); showPicker = true" @mouseleave="hideTimer = setTimeout(() => { showPicker = false; }, 220)" class="cv-picker cv-fb-reaction-picker absolute bottom-full left-0 z-50" style="display: none;">
+        <button type="button" class="reaction-btn cv-fb-reaction-option cv-fb-reaction-like {% if reaction_counts.like > 0 and user_reaction == 'like' %}active{% endif %}" title="Like" aria-label="Like" data-kind="like" data-icon="{{ 'like'|reaction_icon|escapejs }}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'like' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click="showPicker = false" onclick="previewPostReaction(this)">{{ "like"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn cv-fb-reaction-option cv-fb-reaction-love {% if reaction_counts.love > 0 and user_reaction == 'love' %}active{% endif %}" title="Love" aria-label="Love" data-kind="love" data-icon="{{ 'love'|reaction_icon|escapejs }}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'love' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click="showPicker = false" onclick="previewPostReaction(this)">{{ "love"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn cv-fb-reaction-option cv-fb-reaction-care {% if reaction_counts.care > 0 and user_reaction == 'care' %}active{% endif %}" title="Care" aria-label="Care" data-kind="care" data-icon="{{ 'care'|reaction_icon|escapejs }}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'care' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click="showPicker = false" onclick="previewPostReaction(this)">{{ "care"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn cv-fb-reaction-option cv-fb-reaction-haha {% if reaction_counts.haha > 0 and user_reaction == 'haha' %}active{% endif %}" title="Haha" aria-label="Haha" data-kind="haha" data-icon="{{ 'haha'|reaction_icon|escapejs }}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'haha' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click="showPicker = false" onclick="previewPostReaction(this)">{{ "haha"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn cv-fb-reaction-option cv-fb-reaction-wow {% if reaction_counts.wow > 0 and user_reaction == 'wow' %}active{% endif %}" title="Wow" aria-label="Wow" data-kind="wow" data-icon="{{ 'wow'|reaction_icon|escapejs }}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'wow' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click="showPicker = false" onclick="previewPostReaction(this)">{{ "wow"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn cv-fb-reaction-option cv-fb-reaction-sad {% if reaction_counts.sad > 0 and user_reaction == 'sad' %}active{% endif %}" title="Sad" aria-label="Sad" data-kind="sad" data-icon="{{ 'sad'|reaction_icon|escapejs }}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'sad' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click="showPicker = false" onclick="previewPostReaction(this)">{{ "sad"|reaction_icon }}</button>
+        <button type="button" class="reaction-btn cv-fb-reaction-option cv-fb-reaction-angry {% if reaction_counts.angry > 0 and user_reaction == 'angry' %}active{% endif %}" title="Angry" aria-label="Angry" data-kind="angry" data-icon="{{ 'angry'|reaction_icon|escapejs }}" hx-post="{% url 'interactions:toggle_reaction' post.pk 'angry' %}{% if in_modal %}?modal=1{% endif %}" hx-target="#{% if in_modal %}modal-post-stats{% else %}post-stats{% endif %}-{{ post.pk }}" hx-swap="outerHTML" @click="showPicker = false" onclick="previewPostReaction(this)">{{ "angry"|reaction_icon }}</button>
+      </div>
     </div>
-    <span>{{ total_reactions }}</span>
+    <button type="button"
+            class="cv-fb-count-item cv-fb-count-action"
+            aria-label="View {{ post.comment_count }} comment{{ post.comment_count|pluralize }}"
+            hx-get="{% url 'posts:modal' post.pk %}"
+            hx-target="#post-modal-root"
+            hx-swap="innerHTML">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a8.5 8.5 0 0 1-12.8 7.35L3.5 20l1.15-4.05A8.5 8.5 0 1 1 20.5 11.5Z"></path></svg>
+      <span>{{ post.comment_count }}</span>
+    </button>
+    <button type="button"
+            class="cv-fb-count-item cv-fb-count-action"
+            aria-label="Share this post. {{ post.share_count }} share{{ post.share_count|pluralize }}"
+            hx-get="{% url 'posts:share' post.pk %}{% if in_modal %}?modal=1{% endif %}"
+            hx-target="#{% if in_modal %}modal-share{% else %}share{% endif %}-{{ post.pk }}"
+            hx-swap="outerHTML">
+      <span class="cv-share-icon-box cv-share-icon-200" aria-hidden="true">
+        <svg width="200px" height="200px" viewBox="-2.5 -2.5 30.00 30.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M14.734 15.8974L19.22 12.1374C19.3971 11.9927 19.4998 11.7761 19.4998 11.5474C19.4998 11.3187 19.3971 11.1022 19.22 10.9574L14.734 7.19743C14.4947 6.9929 14.1598 6.94275 13.8711 7.06826C13.5824 7.19377 13.3906 7.47295 13.377 7.78743V9.27043C7.079 8.17943 5.5 13.8154 5.5 16.9974C6.961 14.5734 10.747 10.1794 13.377 13.8154V15.3024C13.3888 15.6178 13.5799 15.8987 13.8689 16.0254C14.158 16.1521 14.494 16.1024 14.734 15.8974Z"></path>
+        </svg>
+      </span>
+      <span>{{ post.share_count }}</span>
+    </button>
   </div>
-  {% else %}
-  <span></span>
+  {% if total_reactions > 0 %}
+  <div class="cv-fb-reaction-stack" aria-label="{{ total_reactions }} reactions">
+    {% if reaction_counts.like > 0 %}<span class="cv-reaction-badge cv-fb-stack-like z-10">{{ "like"|reaction_icon }}</span>{% endif %}
+    {% if reaction_counts.love > 0 %}<span class="cv-reaction-badge cv-fb-stack-love z-[9]">{{ "love"|reaction_icon }}</span>{% endif %}
+    {% if reaction_counts.care > 0 %}<span class="cv-reaction-badge cv-fb-stack-care z-[8]">{{ "care"|reaction_icon }}</span>{% endif %}
+    {% if reaction_counts.haha > 0 %}<span class="cv-reaction-badge cv-fb-stack-haha z-[7]">{{ "haha"|reaction_icon }}</span>{% endif %}
+    {% if reaction_counts.wow > 0 %}<span class="cv-reaction-badge cv-fb-stack-wow z-[6]">{{ "wow"|reaction_icon }}</span>{% endif %}
+    {% if reaction_counts.sad > 0 %}<span class="cv-reaction-badge cv-fb-stack-sad z-[5]">{{ "sad"|reaction_icon }}</span>{% endif %}
+    {% if reaction_counts.angry > 0 %}<span class="cv-reaction-badge cv-fb-stack-angry z-[4]">{{ "angry"|reaction_icon }}</span>{% endif %}
+  </div>
   {% endif %}
-  <span>{{ post.comment_count }} comment{{ post.comment_count|pluralize }}{% if post.share_count %} - {{ post.share_count }} share{{ post.share_count|pluralize }}{% endif %}</span>
 </div>
+{% endwith %}
 {% endwith %}
 {% endwith %}

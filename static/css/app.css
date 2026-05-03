@@ -686,13 +686,13 @@ body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
 .cv-picker {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px;
+  gap: 6px;
+  padding: 5px 7px;
   z-index: 50;
-  border: 1px solid #ced0d4;
+  border: 1px solid #cfd2d6;
   border-radius: 999px;
   background: #fff;
-  box-shadow: 0 8px 24px rgba(0,0,0,.16), 0 2px 6px rgba(0,0,0,.08);
+  box-shadow: 0 3px 10px rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.12);
 }
 .cv-picker::after {
   content: "";
@@ -703,8 +703,8 @@ body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
   height: 8px;
 }
 .cv-picker .reaction-btn {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: transparent;
   border: none;
@@ -712,14 +712,43 @@ body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 27px;
   line-height: 1;
-  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+  transition: transform .15s ease, filter .15s ease;
 }
 .cv-picker .reaction-btn:hover {
-  transform: translateY(-3px) scale(1.12);
-  background: #f0f2f5;
-  box-shadow: 0 3px 8px rgba(0,0,0,.12);
+  transform: translateY(-6px) scale(1.2);
+  filter: drop-shadow(0 4px 5px rgba(0,0,0,.18));
+}
+.cv-fb-reaction-picker {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  min-width: max-content;
+}
+.cv-fb-reaction-option {
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), rgba(255,255,255,0) 42%);
+}
+.cv-fb-reaction-option.active {
+  transform: scale(1.3);
+}
+.cv-fb-reaction-option.active::after {
+  content: '✓';
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #1877f2;
+  color: white;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reaction-btn {
+  position: relative;
 }
 .cv-reaction-badge {
   width: 18px;
@@ -733,6 +762,95 @@ body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
   line-height: 1;
   box-shadow: 0 0 0 1px #fff;
 }
+.cv-fb-engagement-strip {
+  align-items: center;
+  color: #65676b;
+  display: flex;
+  font-size: 13px;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 7px 14px 6px;
+}
+.cv-fb-counts {
+  align-items: center;
+  display: flex;
+  gap: 22px;
+  min-width: 0;
+}
+.cv-fb-count-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  cursor: default;
+  display: inline-flex;
+  gap: 6px;
+  line-height: 1;
+  min-height: 28px;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.cv-fb-count-action {
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+.cv-fb-count-action:hover {
+  background: #f0f2f5;
+  color: #1877f2;
+}
+.cv-fb-count-action:active {
+  transform: scale(.97);
+}
+.cv-fb-count-action.active {
+  color: #1877f2;
+  font-weight: 700;
+}
+.cv-fb-count-item svg {
+  fill: none;
+  height: 20px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 20px;
+}
+.cv-fb-inline-like {
+  align-items: center;
+  color: #65676b;
+  display: inline-flex;
+  font-size: 17px;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+.cv-fb-inline-like svg {
+  fill: currentColor;
+  stroke: none;
+}
+.cv-fb-inline-like.active {
+  color: #1877f2;
+}
+.cv-fb-reaction-stack {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  margin-left: 10px;
+}
+.cv-fb-reaction-stack .cv-reaction-badge {
+  margin-left: -4px;
+}
+.cv-fb-reaction-stack .cv-reaction-badge:first-child {
+  margin-left: 0;
+}
+.cv-fb-stack-like { background: #1877f2; }
+.cv-fb-stack-love { background: #e0245e; }
+.cv-fb-stack-care,
+.cv-fb-stack-haha,
+.cv-fb-stack-wow,
+.cv-fb-stack-sad { background: #f7b928; }
+.cv-fb-stack-angry { background: #f57c00; }
 .cv-share-form {
   border: 1px solid #ced0d4;
   border-radius: 8px;
@@ -762,6 +880,40 @@ body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
 .cv-icon-button:hover {
   color: #050505;
   background: #e4e6eb;
+}
+
+/* --- Share icon box (small) --- */
+.cv-share-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #65676b;
+}
+.cv-share-icon-box:hover {
+  background: #f0f2f5;
+  border-color: #e4e6eb;
+  color: #1877f2;
+}
+.cv-share-icon-box svg { width: 20px; height: 20px; display: block; }
+
+/* Large share icon (200px) */
+.cv-share-icon-200 {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.cv-share-icon-200 svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* --- Post media --- */

@@ -6,6 +6,7 @@ from django.db.models import Q
 class Reaction(models.Model):
     KIND_LIKE = "like"
     KIND_LOVE = "love"
+    KIND_CARE = "care"
     KIND_WOW = "wow"
     KIND_SAD = "sad"
     KIND_ANGRY = "angry"
@@ -14,6 +15,7 @@ class Reaction(models.Model):
     KIND_CHOICES = (
         (KIND_LIKE, "Like"),
         (KIND_LOVE, "Love"),
+        (KIND_CARE, "Care"),
         (KIND_WOW, "Wow"),
         (KIND_SAD, "Sad"),
         (KIND_ANGRY, "Angry"),
@@ -23,6 +25,7 @@ class Reaction(models.Model):
     REACTION_ICONS = {
         KIND_LIKE: "&#128077;",
         KIND_LOVE: "&#10084;&#65039;",
+        KIND_CARE: "&#129392;",
         KIND_WOW: "&#128558;",
         KIND_SAD: "&#128546;",
         KIND_ANGRY: "&#128544;",
@@ -32,6 +35,7 @@ class Reaction(models.Model):
     REACTION_COLORS = {
         KIND_LIKE: "#1877f2",
         KIND_LOVE: "#e0245e",
+        KIND_CARE: "#f7b928",
         KIND_WOW: "#f7b928",
         KIND_SAD: "#f7b928",
         KIND_ANGRY: "#f57c00",

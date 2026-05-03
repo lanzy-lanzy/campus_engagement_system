@@ -23,11 +23,7 @@
         {% include "posts/partials/post_media_grid.html" with post=post %}
       {% endif %}
       {% include "interactions/partials/post_stats.html" with post=post in_modal=True %}
-      <hr class="cv-divider mx-4">
-      <div class="px-2 py-1">
-        {% include "interactions/partials/reaction_bar.html" with in_modal=True %}
-      </div>
-      {% include "posts/partials/share_slot.html" with post=post %}
+      {% include "posts/partials/share_slot.html" with post=post in_modal=True %}
       <hr class="cv-divider mx-4">
       <section class="px-4 py-3">
         <div class="mb-3 flex items-center gap-1 text-[13px] font-semibold text-[#65676b]">

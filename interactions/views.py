@@ -54,18 +54,24 @@ def toggle_reaction(request, post_id, kind):
     elif reaction:
         reaction.kind = kind
         reaction.save(update_fields=["kind"])
-        notify_post_reaction(post, request.user)
     else:
         Reaction.objects.create(post=post, user=request.user, kind=kind)
         notify_post_reaction(post, request.user)
+    # Render updated post stats for the request target
+    post_stats_html = render_to_string(
+        "interactions/partials/post_stats.html",
+        {"post": post, "in_modal": in_modal},
+        request=request,
+    )
 
-    reaction_bar_html = render_to_string("interactions/partials/reaction_bar.html", {"post": post, "in_modal": in_modal}, request=request)
-    post_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "in_modal": in_modal, "force_oob": in_modal}, request=request)
-    if in_modal:
-        feed_reaction_bar_html = render_to_string("interactions/partials/reaction_bar.html", {"post": post, "force_oob": True}, request=request)
-        feed_post_stats_html = render_to_string("interactions/partials/post_stats.html", {"post": post, "force_oob": True}, request=request)
-        return HttpResponse(reaction_bar_html + post_stats_html + feed_reaction_bar_html + feed_post_stats_html)
-    return HttpResponse(reaction_bar_html + post_stats_html)
+    # Render out-of-band updates to keep feed/modal in sync
+    oob_stats_html = render_to_string(
+        "interactions/partials/post_stats.html",
+        {"post": post, "in_modal": not in_modal, "force_oob": True},
+        request=request,
+    )
+
+    return HttpResponse(post_stats_html + oob_stats_html)
 
 
 @login_required

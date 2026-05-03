@@ -17,6 +17,14 @@ def user_reaction(post, user):
     return post.get_user_reaction(user)
 
 @register.filter
+def user_has_reaction(post, user, kind=None):
+    if not user or not user.is_authenticated:
+        return False
+    if not kind:
+        return False
+    return post.user_has_reaction(user, kind)
+
+@register.filter
 def reaction_counts(post):
     return post.get_reaction_counts()
 

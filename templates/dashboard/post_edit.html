@@ -1,0 +1,95 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Edit Post - Admin Dashboard{% endblock %}
+
+{% block admin_content %}
+<div class="animate-fade-in">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">Edit Post</h1>
+    <p class="text-slate-500 dark:text-slate-400">Update post content and moderation status</p>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-card lg:col-span-2">
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Title</label>
+          <input type="text" name="title" value="{{ post.title }}" class="w-full px-4 py-2.5 bg-slate-100 dark:bg-gray-700 border-0 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Description</label>
+          <textarea name="description" rows="6" class="w-full px-4 py-2.5 bg-slate-100 dark:bg-gray-700 border-0 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50 resize-none" required>{{ post.description }}</textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Category</label>
+          <select name="category" class="w-full px-4 py-2.5 bg-slate-100 dark:bg-gray-700 border-0 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+            {% for value, label in categories %}
+            <option value="{{ value }}" {% if post.category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Status</label>
+          <select name="status" class="w-full px-4 py-2.5 bg-slate-100 dark:bg-gray-700 border-0 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+            {% for value, label in statuses %}
+            <option value="{{ value }}" {% if post.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Admin Status</label>
+          <select name="admin_status" class="w-full px-4 py-2.5 bg-slate-100 dark:bg-gray-700 border-0 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+            {% for value, label in admin_statuses %}
+            <option value="{{ value }}" {% if post.admin_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-600 to-brand-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+            Save Changes
+          </button>
+          <a href="{% url 'dashboard:posts' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl hover:bg-slate-300 dark:hover:bg-gray-600 transition-colors">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-card">
+      <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Post Info</h3>
+      <dl class="space-y-4 text-sm">
+        <div>
+          <dt class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1">Author</dt>
+          <dd class="font-semibold text-slate-700 dark:text-slate-200">{{ post.author.username }}</dd>
+        </div>
+        <div>
+          <dt class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1">Created</dt>
+          <dd class="text-slate-700 dark:text-slate-300">{{ post.created_at|date:"F d, Y g:i A" }}</dd>
+        </div>
+        <div>
+          <dt class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1">Updated</dt>
+          <dd class="text-slate-700 dark:text-slate-300">{{ post.updated_at|date:"F d, Y g:i A" }}</dd>
+        </div>
+        <div>
+          <dt class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1">Reactions</dt>
+          <dd class="text-slate-700 dark:text-slate-300">{{ post.reaction_count }}</dd>
+        </div>
+        <div>
+          <dt class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1">Comments</dt>
+          <dd class="text-slate-700 dark:text-slate-300">{{ post.comment_count }}</dd>
+        </div>
+        <div>
+          <dt class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1">Reports</dt>
+          <dd class="text-slate-700 dark:text-slate-300">{{ post.report_count }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</div>
+{% endblock %}

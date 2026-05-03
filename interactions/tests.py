@@ -64,12 +64,10 @@ class InteractionTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, f'id="modal-reactions-{self.post.pk}"')
         self.assertContains(response, f'id="modal-post-stats-{self.post.pk}"')
         self.assertContains(response, 'hx-swap-oob="outerHTML"')
-        self.assertContains(response, 'data-current-reaction="like"')
+        self.assertContains(response, 'aria-label="1 reaction')
         self.assertContains(response, f'id="post-stats-{self.post.pk}"')
-        self.assertContains(response, f'id="reactions-{self.post.pk}"')
 
     def test_reaction_bar_renders_clean_like_icon(self):
         self.client.login(email="student@example.com", password="StrongPass123")
@@ -80,6 +78,42 @@ class InteractionTests(TestCase):
         self.assertContains(response, "cv-like-icon")
         self.assertNotContains(response, "\u00f0\u0178")
         self.assertNotContains(response, "\u00e2\u009d")
+
+    def test_reaction_main_button_quick_click_defaults_to_like(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("interactions:get_reaction_bar", args=[self.post.pk]), HTTP_HX_REQUEST="true")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-default-reaction-kind="like"')
+        self.assertContains(response, "pulseDefaultReaction($el)")
+        self.assertNotContains(response, "!showPicker")
+        self.assertContains(response, "data-quick-reaction-url")
+
+    def test_reaction_picker_uses_facebook_style_layout(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("interactions:get_reaction_bar", args=[self.post.pk]), HTTP_HX_REQUEST="true")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "cv-fb-reaction-picker")
+        self.assertContains(response, "cv-fb-reaction-option")
+        self.assertContains(response, "cv-fb-reaction-like")
+        self.assertContains(response, "cv-fb-reaction-love")
+        self.assertContains(response, "cv-fb-reaction-care")
+
+    def test_post_stats_uses_compact_facebook_style_counts(self):
+        self.client.login(email="student@example.com", password="StrongPass123")
+        Reaction.objects.create(post=self.post, user=self.friend, kind=Reaction.KIND_LOVE)
+        Comment.objects.create(post=self.post, author=self.friend, body="This matters.")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "cv-fb-engagement-strip")
+        self.assertContains(response, "cv-fb-count-item")
+        self.assertContains(response, "cv-fb-reaction-stack")
+        self.assertContains(response, "1")
 
     def test_comment_reactions_can_switch_without_affecting_post_reactions(self):
         self.client.login(email="student@example.com", password="StrongPass123")

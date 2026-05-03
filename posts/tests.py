@@ -149,7 +149,7 @@ class PostViewTests(TestCase):
         post = Post.objects.get(title="Media rich update")
         self.assertEqual(post.attachments.filter(media_type=PostAttachment.TYPE_IMAGE).count(), 5)
         self.assertEqual(post.attachments.filter(media_type=PostAttachment.TYPE_VIDEO).count(), 1)
-        self.assertContains(response, "cv-media-grid")
+        self.assertContains(response, "cv-media-carousel")
         self.assertContains(response, "<video")
 
     def test_create_post_rejects_more_than_five_images(self):
@@ -256,16 +256,15 @@ class PostViewTests(TestCase):
         self.assertContains(response, "data-post-modal-backdrop")
         self.assertContains(response, "max-w-[630px]")
         self.assertContains(response, "modal-post-stats")
-        self.assertContains(response, 'id="modal-reactions-')
         self.assertContains(response, 'id="modal-comments-')
         self.assertContains(response, "/comments/?modal=1")
         self.assertContains(response, "/react/like/?modal=1")
+        self.assertContains(response, f'hx-target="#modal-post-stats-{post.pk}"')
+        self.assertContains(response, f'hx-target="#modal-share-{post.pk}"')
         self.assertNotContains(response, 'hx-swap-oob="true"')
+        self.assertNotContains(response, "cv-react-btn")
         self.assertContains(response, "cv-comment-menu-button")
         self.assertContains(response, "document.getElementById('post-modal-root').innerHTML = ''")
-        self.assertContains(response, "Like")
-        self.assertContains(response, "Comment")
-        self.assertContains(response, "Share")
 
     def test_feed_comment_action_targets_post_modal(self):
         post = Post.objects.create(
@@ -283,8 +282,26 @@ class PostViewTests(TestCase):
         self.assertContains(response, f'hx-get="{reverse("posts:modal", args=[post.pk])}"')
         self.assertContains(response, 'hx-target="#post-modal-root"')
         self.assertContains(response, 'hx-swap="innerHTML"')
-        self.assertContains(response, "Comment")
-        self.assertContains(response, "Share")
+
+    def test_feed_footer_uses_single_compact_action_strip(self):
+        post = Post.objects.create(
+            author=self.user,
+            title="Compact actions",
+            description="Footer should not duplicate action rows.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.get(reverse("posts:feed"))
+
+        self.assertContains(response, f'id="post-stats-{post.pk}"')
+        self.assertContains(response, f'hx-post="{reverse("interactions:toggle_reaction", args=[post.pk, "like"])}"')
+        self.assertContains(response, f'hx-target="#post-stats-{post.pk}"')
+        self.assertContains(response, f'hx-get="{reverse("posts:modal", args=[post.pk])}"')
+        self.assertContains(response, f'hx-get="{reverse("posts:share", args=[post.pk])}"')
+        self.assertContains(response, f'hx-target="#share-{post.pk}"')
+        self.assertNotContains(response, "cv-react-btn")
 
     def test_feed_can_auto_open_post_modal_from_notification_link(self):
         post = Post.objects.create(
@@ -320,6 +337,60 @@ class PostViewTests(TestCase):
         self.assertContains(response, "Share this post")
         self.assertContains(response, 'name="caption"')
         self.assertContains(response, post.title)
+
+    def test_modal_share_form_targets_modal_slot(self):
+        post = Post.objects.create(
+            author=self.user,
+            title="Library hours",
+            description="Open earlier.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        modal_response = self.client.get(reverse("posts:modal", args=[post.pk]), HTTP_HX_REQUEST="true")
+        response = self.client.get(f"{reverse('posts:share', args=[post.pk])}?modal=1", HTTP_HX_REQUEST="true")
+
+        self.assertContains(modal_response, f'id="modal-share-{post.pk}"')
+        self.assertContains(modal_response, f'hx-get="{reverse("posts:share", args=[post.pk])}?modal=1"')
+        self.assertContains(modal_response, f'hx-target="#modal-share-{post.pk}"')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'id="modal-share-{post.pk}"')
+        self.assertContains(response, f'hx-post="{reverse("posts:share", args=[post.pk])}?modal=1"')
+        self.assertContains(response, f'hx-target="#modal-share-{post.pk}"')
+        self.assertContains(response, f"document.getElementById('modal-share-{post.pk}').innerHTML = ''")
+        self.assertNotContains(response, f'id="share-{post.pk}"')
+
+    def test_modal_share_post_updates_modal_slot_without_feed_retarget(self):
+        original_author = get_user_model().objects.create_user(
+            username="origin",
+            email="origin@example.com",
+            password="StrongPass123",
+        )
+        original = Post.objects.create(
+            author=original_author,
+            title="Library hours",
+            description="Open earlier.",
+            category=Post.CATEGORY_SUGGESTION,
+            status=Post.STATUS_APPROVED,
+        )
+        self.client.login(email="student@example.com", password="StrongPass123")
+
+        response = self.client.post(
+            f"{reverse('posts:share', args=[original.pk])}?modal=1",
+            {"caption": "This would help night classes too."},
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Post.objects.count(), 2)
+        self.assertNotIn("HX-Retarget", response.headers)
+        self.assertNotIn("HX-Reswap", response.headers)
+        self.assertContains(response, f'id="modal-share-{original.pk}"')
+        self.assertContains(response, f'id="modal-post-stats-{original.pk}"')
+        self.assertContains(response, "1 share")
+        self.assertContains(response, 'hx-swap-oob="outerHTML"')
+        self.assertNotContains(response, "shared a post")
 
     def test_htmx_share_post_creates_feed_story_with_original_preview(self):
         original_author = get_user_model().objects.create_user(
