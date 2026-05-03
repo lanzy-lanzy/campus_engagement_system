@@ -23,13 +23,13 @@ class Reaction(models.Model):
     )
 
     REACTION_ICONS = {
-        KIND_LIKE: "&#128077;",
-        KIND_LOVE: "&#10084;&#65039;",
-        KIND_CARE: "&#129392;",
-        KIND_WOW: "&#128558;",
-        KIND_SAD: "&#128546;",
-        KIND_ANGRY: "&#128544;",
-        KIND_HAHA: "&#128514;",
+        KIND_LIKE: '<img src="/static/emoji/like.png" class="w-6 h-6" alt="like">',
+        KIND_LOVE: '<img src="/static/emoji/love.png" class="w-6 h-6" alt="love">',
+        KIND_CARE: '<img src="/static/emoji/care.png" class="w-6 h-6" alt="care">',
+        KIND_WOW: '<img src="/static/emoji/wow.png" class="w-6 h-6" alt="wow">',
+        KIND_SAD: '<img src="/static/emoji/sad.png" class="w-6 h-6" alt="sad">',
+        KIND_ANGRY: '<img src="/static/emoji/angry.png" class="w-6 h-6" alt="angry">',
+        KIND_HAHA: '<img src="/static/emoji/haha.png" class="w-6 h-6" alt="haha">',
     }
 
     REACTION_COLORS = {
